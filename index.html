@@ -2,314 +2,507 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>For My Reyrey ♡</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Love Claw Machine ♡</title>
 
-<style>
-* { box-sizing: border-box; }
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  padding: 30px 15px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: Georgia, serif;
-  color: #914e6a;
-  text-align: center;
-  background: linear-gradient(135deg, #ffe1ed, #fff7fa, #ffd2e5);
-  overflow-x: hidden;
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", sans-serif;
+      color: #873e62;
+      background: linear-gradient(135deg, #fff0f6, #ffe0ec, #fff5f8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 25px 14px;
+      overflow-x: hidden;
+    }
 
-.letter {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  max-width: 450px;
-  padding: 30px 24px;
-  background: rgba(255,255,255,.94);
-  border: 1px solid #ffd1e1;
-  border-radius: 26px;
-  box-shadow: 0 12px 35px #d66b9330;
-  animation: appear 1s ease;
-}
+    .page {
+      width: 100%;
+      max-width: 470px;
+      text-align: center;
+    }
 
-h1 { color: #d66b93; }
+    .sparkles {
+      font-size: 22px;
+      letter-spacing: 10px;
+      margin-bottom: 10px;
+    }
 
-.main-heart {
-  font-size: 54px;
-  animation: beat 1.4s infinite;
-}
+    h1 {
+      font-family: Georgia, serif;
+      font-size: clamp(30px, 8vw, 43px);
+      margin: 0;
+      color: #d65d91;
+    }
 
-p { line-height: 1.8; }
+    .subtitle {
+      font-size: 14px;
+      line-height: 1.7;
+      margin: 12px auto 20px;
+      max-width: 320px;
+    }
 
-button {
-  margin: 7px 4px;
-  padding: 12px 17px;
-  border: none;
-  border-radius: 25px;
-  background: #e88bad;
-  color: white;
-  font-size: 15px;
-  cursor: pointer;
-  transition: transform .25s, background .25s;
-}
+    .machine {
+      background: #f6a8c8;
+      border: 5px solid #d96d9e;
+      border-radius: 27px;
+      padding: 12px;
+      box-shadow: 0 10px 0 #c65b8d, 0 18px 30px #d88caf55;
+    }
 
-button:hover {
-  transform: scale(1.06);
-  background: #d66b93;
-}
+    .machine-top {
+      background: #ffe8f2;
+      border: 3px solid #fff7fb;
+      border-radius: 17px;
+      padding: 10px;
+      margin-bottom: 12px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      color: #d65d91;
+    }
 
-.message-box {
-  min-height: 65px;
-  padding: 12px;
-  margin-top: 12px;
-  background: #fff0f6;
-  border-radius: 16px;
-}
+    .glass {
+      position: relative;
+      height: 260px;
+      background: linear-gradient(#fff5fa, #fce0ee);
+      border: 4px solid #fff7fb;
+      border-radius: 16px;
+      overflow: hidden;
+    }
 
-.fade-message {
-  animation: fade 4s ease-in-out infinite;
-}
+    .glass::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 15%;
+      height: 100%;
+      width: 20%;
+      background: #ffffff35;
+      transform: skew(-12deg);
+      pointer-events: none;
+      z-index: 2;
+    }
 
-.music-box {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 18px;
-  background: #fff0f5;
-}
+    .prize-pit {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      background: #f8bad5;
+      border-top: 4px solid #fff7fb;
+    }
 
-#player {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0.01;
-  pointer-events: none;
-}
+    .prize {
+      position: absolute;
+      bottom: 17px;
+      font-size: 36px;
+      filter: drop-shadow(0 3px 1px #b96c8b44);
+      transition: opacity 0.3s, transform 0.3s;
+    }
 
-.floating-heart {
-  position: fixed;
-  bottom: -35px;
-  z-index: 1;
-  pointer-events: none;
-  color: #ed8fb0;
-  animation: floatUp 7s linear forwards;
-}
+    .p1 { left: 7%; }
+    .p2 { left: 25%; }
+    .p3 { left: 43%; }
+    .p4 { left: 61%; }
+    .p5 { left: 79%; }
 
-.sparkles {
-  color: #e88bad;
-  letter-spacing: 7px;
-  animation: sparkle 2s infinite alternate;
-}
+    .prize.taken {
+      opacity: 0.18;
+      transform: scale(0.7);
+    }
 
-@keyframes floatUp {
-  0% { transform: translateY(0) rotate(0); opacity: 0; }
-  15% { opacity: .9; }
-  100% { transform: translateY(-115vh) rotate(35deg); opacity: 0; }
-}
+    .claw {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 54px;
+      height: 145px;
+      transform: translateX(-50%);
+      transition: left 0.3s ease;
+      z-index: 3;
+    }
 
-@keyframes beat {
-  0%,100% { transform: scale(1); }
-  50% { transform: scale(1.13); }
-}
+    .rope {
+      height: 72px;
+      width: 4px;
+      background: #bd6992;
+      margin: 0 auto;
+    }
 
-@keyframes sparkle {
-  from { opacity: .45; }
-  to { opacity: 1; }
-}
+    .claw-head {
+      width: 43px;
+      height: 25px;
+      margin: 0 auto;
+      border-radius: 9px 9px 5px 5px;
+      background: #e889b4;
+      border: 3px solid #fff1f7;
+      position: relative;
+    }
 
-@keyframes appear {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    .claw-head::before,
+    .claw-head::after {
+      content: "";
+      position: absolute;
+      top: 15px;
+      width: 10px;
+      height: 25px;
+      border: 4px solid #c45f91;
+      border-top: 0;
+      background: transparent;
+    }
 
-@keyframes fade {
-  0%,100% { opacity: .45; }
-  50% { opacity: 1; }
-}
+    .claw-head::before {
+      left: -3px;
+      border-radius: 0 0 0 12px;
+      transform: rotate(15deg);
+    }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-  }
-}
-</style>
+    .claw-head::after {
+      right: -3px;
+      border-radius: 0 0 12px 0;
+      transform: rotate(-15deg);
+    }
+
+    .claw.grabbing {
+      animation: grab 1.3s ease-in-out;
+    }
+
+    @keyframes grab {
+      0% { top: 0; }
+      40% { top: 100px; }
+      60% { top: 100px; }
+      100% { top: 0; }
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 17px 0 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 30px;
+      padding: 12px 17px;
+      font-family: inherit;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .move {
+      background: #fff1f7;
+      color: #bd5486;
+      box-shadow: 0 3px 0 #e5a0bf;
+    }
+
+    .grab {
+      background: #d65d91;
+      color: white;
+      box-shadow: 0 4px 0 #a84474;
+      padding-left: 23px;
+      padding-right: 23px;
+    }
+
+    .counter {
+      font-size: 12px;
+      margin: 13px 0 3px;
+      color: #8d5270;
+    }
+
+    .note {
+      margin-top: 26px;
+      background: #ffffffa8;
+      border: 1px solid #f5bfd6;
+      border-radius: 18px;
+      padding: 18px 15px;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .note strong {
+      color: #d65d91;
+      font-family: Georgia, serif;
+      font-size: 19px;
+    }
+
+    .footer {
+      font-size: 12px;
+      margin-top: 18px;
+      opacity: 0.8;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: #71384fa8;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 22px;
+      z-index: 10;
+    }
+
+    .modal.show {
+      display: flex;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .letter {
+      width: 100%;
+      max-width: 340px;
+      padding: 28px 22px;
+      border: 4px solid white;
+      border-radius: 24px;
+      background: #fff4f8;
+      box-shadow: 0 12px 40px #66324c44;
+      animation: pop 0.3s ease;
+    }
+
+    .letter .emoji {
+      font-size: 48px;
+    }
+
+    .letter h2 {
+      color: #d65d91;
+      font-family: Georgia, serif;
+      margin: 10px 0;
+    }
+
+    .letter p {
+      line-height: 1.8;
+      font-size: 15px;
+    }
+
+    .close {
+      margin-top: 8px;
+      background: #d65d91;
+      color: white;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.8); }
+      to { transform: scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
-<main class="letter">
-  <div class="sparkles">✧ ˚ · ✧</div>
-  <div class="main-heart">♡</div>
-
-  <h1>For My Reyrey</h1>
-  <p>To my dearest Reyrey,</p>
-
-  <p>
-    I made this little corner of the internet just for you.
-    It may be simple, but every little part is made with love.
-    I'm so happy that we found each other, and I hope I can
-    keep giving you reasons to smile.
-  </p>
-
-  <p>
-    I'm so proud of you, mahal ko. After everything,
-    you still try your best to show up and keep going.
-    You don't have to be perfect for me to love you.
-  </p>
-
-  <button onclick="revealLetter()">Open my heart ♡</button>
-
-  <div id="secret" class="message-box" hidden>
-    Thank you for being you, Reyrey. You're loved,
-    appreciated, and I'm always cheering for you. ♡
-  </div>
-
-  <div class="message-box">
-    <p class="fade-message" id="reason">
-      A little reminder: I'm proud of you, mahal. ♡
+  <main class="page">
+    <div class="sparkles">♡ ✧ ♡</div>
+    <h1>Love Claw Machine</h1>
+    <p class="subtitle">
+      A little arcade made just for you, my Reyrey.
+      Try your luck and collect some tiny reminders of my love. ♡
     </p>
-    <button onclick="nextReason()">Another reason I love you ♡</button>
+
+    <section class="machine" aria-label="Love claw machine">
+      <div class="machine-top">♡ FOR MY REYREY ♡</div>
+
+      <div class="glass">
+        <div class="claw" id="claw">
+          <div class="rope"></div>
+          <div class="claw-head"></div>
+        </div>
+
+        <div class="prize-pit"></div>
+        <span class="prize p1" data-prize="0">💗</span>
+        <span class="prize p2" data-prize="1">🧸</span>
+        <span class="prize p3" data-prize="2">🌷</span>
+        <span class="prize p4" data-prize="3">🎀</span>
+        <span class="prize p5" data-prize="4">💌</span>
+      </div>
+
+      <div class="controls">
+        <button class="move" id="left">← LEFT</button>
+        <button class="grab" id="grab">GRAB A PRIZE! ♡</button>
+        <button class="move" id="right">RIGHT →</button>
+      </div>
+
+      <p class="counter" id="counter">Prizes collected: 0 / 5</p>
+    </section>
+
+    <div class="note">
+      <strong>A little something for you ♡</strong>
+      <p>
+        If I could put all my love for you inside this machine,
+        I'd let you take every single prize. But for now,
+        let's start with these little surprises.
+      </p>
+    </div>
+
+    <p class="footer">made with love, just for you · ♡</p>
+  </main>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true"
+       aria-labelledby="letterTitle">
+    <div class="letter">
+      <div class="emoji" id="prizeEmoji">💗</div>
+      <h2 id="letterTitle">You won a little love!</h2>
+      <p id="message"></p>
+      <button class="close" id="close">keep this love ♡</button>
+    </div>
   </div>
 
-  <div class="message-box">
-    <p>Whenever you need a little reminder...</p>
-    <button onclick="littleReminder()">Tap for a reminder ✨</button>
-    <p id="reminder" hidden></p>
-  </div>
+  <script>
+    const claw = document.getElementById("claw");
+    const grabButton = document.getElementById("grab");
+    const leftButton = document.getElementById("left");
+    const rightButton = document.getElementById("right");
+    const counter = document.getElementById("counter");
+    const modal = document.getElementById("modal");
+    const message = document.getElementById("message");
+    const prizeEmoji = document.getElementById("prizeEmoji");
+    const closeButton = document.getElementById("close");
 
-  <div class="music-box">
-    <p>♫ A little song for you, mahal ♡</p>
-    <button onclick="toggleMusic()" id="musicButton">Play our song ♡</button>
-    <p id="musicStatus">Press play while you read my letter.</p>
-    <div id="player"></div>
-    <p class="fade-message">♡ · ˚ ✧ ˚ · ♡</p>
-  </div>
+    const prizes = [
+      {
+        emoji: "💗",
+        title: "You have my heart!",
+        text: "Out of everyone in this world, you're the girl my heart chose. I'm so happy I get to call you mine."
+      },
+      {
+        emoji: "🧸",
+        title: "Your comfort prize!",
+        text: "I hope I can be a safe place for you, too. You don't always have to be strong around me. I'll always do my best to understand you."
+      },
+      {
+        emoji: "🌷",
+        title: "A flower for my hot and pwiti girl!",
+        text: "You deserve flowers, gentle love, and all the little things that make you smile. I'm so proud of you and how you keep trying, even when things get hard."
+      },
+      {
+        emoji: "🎀",
+        title: "A little reminder!",
+        text: "You don't have to be perfect for me to love you. I love the real you, and I'm grateful for every little moment we get to share."
+      },
+      {
+        emoji: "💌",
+        title: "Your special letter!",
+        text: "One of my favorite things is that our story happened at all. Thank you for being here, for trying, and for letting me love you. I hope we keep making sweet memories together."
+      }
+    ];
 
-  <p class="sparkles">♡ · ˚ ✧ ˚ · ♡</p>
-</main>
+    let clawPosition = 50;
+    let collected = [];
+    let busy = false;
 
-<script>
-function revealLetter() {
-  document.getElementById("secret").hidden = false;
-}
-
-const reasons = [
-  "I love how you keep trying, even after hard days. ♡",
-  "I'm proud of the person you're becoming, mahal.",
-  "You make ordinary moments feel special. 💗",
-  "I love that I get to call you my girlfriend.",
-  "You don't have to be perfect to be loved by me.",
-  "Thank you for staying and trying with me. ♡",
-  "You deserve the same kindness you give others."
-];
-
-let reasonIndex = 0;
-
-function nextReason() {
-  const box = document.getElementById("reason");
-  box.style.opacity = 0;
-
-  setTimeout(() => {
-    box.textContent = reasons[reasonIndex];
-    reasonIndex = (reasonIndex + 1) % reasons.length;
-    box.style.opacity = 1;
-  }, 300);
-}
-
-const reminders = [
-  "Take a breath, mahal. You are doing your best. ♡",
-  "You deserve rest, kindness, and happiness.",
-  "I'm proud of you, even on difficult days.",
-  "You don't have to figure everything out today.",
-  "You are loved more than you know. 💗"
-];
-
-function littleReminder() {
-  const box = document.getElementById("reminder");
-  box.textContent = reminders[Math.floor(Math.random() * reminders.length)];
-  box.hidden = false;
-}
-
-let player;
-let musicStarted = false;
-
-function loadYouTube() {
-  if (window.YT && window.YT.Player) {
-    createPlayer();
-    return;
-  }
-
-  if (!document.getElementById("youtube-api")) {
-    const tag = document.createElement("script");
-    tag.id = "youtube-api";
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
-  }
-}
-
-function createPlayer() {
-  if (player) return;
-
-  player = new YT.Player("player", {
-    height: "1",
-    width: "1",
-    videoId: "95HlilRpVFk",
-    playerVars: {
-      autoplay: 0,
-      controls: 0,
-      playsinline: 1
-    },
-    events: {
-      onReady: function() {}
+    function updateCounter() {
+      counter.textContent = `Prizes collected: ${collected.length} / ${prizes.length}`;
     }
-  });
-}
 
-window.onYouTubeIframeAPIReady = function() {
-  createPlayer();
-};
+    function moveClaw(amount) {
+      if (busy) return;
+      clawPosition = Math.max(10, Math.min(90, clawPosition + amount));
+      claw.style.left = clawPosition + "%";
+    }
 
-function toggleMusic() {
-  if (!player || !player.playVideo) {
-    document.getElementById("musicStatus").textContent =
-      "Loading the song... tap Play our song again in a moment ♡";
-    loadYouTube();
-    return;
-  }
+    leftButton.addEventListener("click", () => moveClaw(-15));
+    rightButton.addEventListener("click", () => moveClaw(15));
 
-  if (!musicStarted) {
-    player.playVideo();
-    musicStarted = true;
-    document.getElementById("musicButton").textContent = "Pause our song ♡";
-    document.getElementById("musicStatus").textContent =
-      "Enjoy our song while you read, mahal. ♡";
-  } else {
-    player.pauseVideo();
-    musicStarted = false;
-    document.getElementById("musicButton").textContent = "Play our song ♡";
-    document.getElementById("musicStatus").textContent = "Song paused ♡";
-  }
-}
+    grabButton.addEventListener("click", () => {
+      if (busy) return;
 
-loadYouTube();
+      if (collected.length === prizes.length) {
+        collected = [];
+        document.querySelectorAll(".prize").forEach(item => {
+          item.classList.remove("taken");
+        });
+        updateCounter();
+        grabButton.textContent = "GRAB A PRIZE! ♡";
+        counter.textContent = "All prizes reset! Try again, my love ♡";
+        return;
+      }
 
-const hearts = ["♡", "♥", "💕", "୨୧", "✧"];
+      const available = prizes
+        .map((prize, index) => index)
+        .filter(index => !collected.includes(index));
 
-function createHeart() {
-  const heart = document.createElement("span");
-  heart.className = "floating-heart";
-  heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-  heart.style.left = Math.random() * 100 + "vw";
-  heart.style.fontSize = (16 + Math.random() * 20) + "px";
-  heart.style.animationDuration = (5 + Math.random() * 4) + "s";
-  document.body.appendChild(heart);
-  setTimeout(() => heart.remove(), 9500);
-}
+      const randomIndex = available[Math.floor(Math.random() * available.length)];
+      const prize = prizes[randomIndex];
 
-setInterval(createHeart, 650);
-</script>
+      busy = true;
+      grabButton.disabled = true;
+      leftButton.disabled = true;
+      rightButton.disabled = true;
+
+      claw.classList.remove("grabbing");
+      void claw.offsetWidth;
+      claw.classList.add("grabbing");
+
+      setTimeout(() => {
+        document.querySelector(`[data-prize="${randomIndex}"]`)
+          .classList.add("taken");
+
+        collected.push(randomIndex);
+        updateCounter();
+
+        prizeEmoji.textContent = prize.emoji;
+        document.getElementById("letterTitle").textContent = prize.title;
+        message.textContent = prize.text;
+        modal.classList.add("show");
+
+        claw.classList.remove("grabbing");
+        busy = false;
+        grabButton.disabled = false;
+        leftButton.disabled = false;
+        rightButton.disabled = false;
+
+        if (collected.length === prizes.length) {
+          counter.textContent = "You collected every prize, my love! ♡";
+          grabButton.textContent = "PLAY AGAIN ↻";
+        }
+      }, 1350);
+    });
+
+    closeButton.addEventListener("click", () => {
+      modal.classList.remove("show");
+    });
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) {
+        modal.classList.remove("show");
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        modal.classList.remove("show");
+      }
+    });
+  </script>
 </body>
 </html>
