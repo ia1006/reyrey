@@ -1,0 +1,315 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For My Reyrey ♡</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 30px 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Georgia, serif;
+  color: #914e6a;
+  text-align: center;
+  background: linear-gradient(135deg, #ffe1ed, #fff7fa, #ffd2e5);
+  overflow-x: hidden;
+}
+
+.letter {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 450px;
+  padding: 30px 24px;
+  background: rgba(255,255,255,.94);
+  border: 1px solid #ffd1e1;
+  border-radius: 26px;
+  box-shadow: 0 12px 35px #d66b9330;
+  animation: appear 1s ease;
+}
+
+h1 { color: #d66b93; }
+
+.main-heart {
+  font-size: 54px;
+  animation: beat 1.4s infinite;
+}
+
+p { line-height: 1.8; }
+
+button {
+  margin: 7px 4px;
+  padding: 12px 17px;
+  border: none;
+  border-radius: 25px;
+  background: #e88bad;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform .25s, background .25s;
+}
+
+button:hover {
+  transform: scale(1.06);
+  background: #d66b93;
+}
+
+.message-box {
+  min-height: 65px;
+  padding: 12px;
+  margin-top: 12px;
+  background: #fff0f6;
+  border-radius: 16px;
+}
+
+.fade-message {
+  animation: fade 4s ease-in-out infinite;
+}
+
+.music-box {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 18px;
+  background: #fff0f5;
+}
+
+#player {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0.01;
+  pointer-events: none;
+}
+
+.floating-heart {
+  position: fixed;
+  bottom: -35px;
+  z-index: 1;
+  pointer-events: none;
+  color: #ed8fb0;
+  animation: floatUp 7s linear forwards;
+}
+
+.sparkles {
+  color: #e88bad;
+  letter-spacing: 7px;
+  animation: sparkle 2s infinite alternate;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0); opacity: 0; }
+  15% { opacity: .9; }
+  100% { transform: translateY(-115vh) rotate(35deg); opacity: 0; }
+}
+
+@keyframes beat {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.13); }
+}
+
+@keyframes sparkle {
+  from { opacity: .45; }
+  to { opacity: 1; }
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade {
+  0%,100% { opacity: .45; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+</style>
+</head>
+
+<body>
+<main class="letter">
+  <div class="sparkles">✧ ˚ · ✧</div>
+  <div class="main-heart">♡</div>
+
+  <h1>For My Reyrey</h1>
+  <p>To my dearest Reyrey,</p>
+
+  <p>
+    I made this little corner of the internet just for you.
+    It may be simple, but every little part is made with love.
+    I'm so happy that we found each other, and I hope I can
+    keep giving you reasons to smile.
+  </p>
+
+  <p>
+    I'm so proud of you, mahal ko. After everything,
+    you still try your best to show up and keep going.
+    You don't have to be perfect for me to love you.
+  </p>
+
+  <button onclick="revealLetter()">Open my heart ♡</button>
+
+  <div id="secret" class="message-box" hidden>
+    Thank you for being you, Reyrey. You're loved,
+    appreciated, and I'm always cheering for you. ♡
+  </div>
+
+  <div class="message-box">
+    <p class="fade-message" id="reason">
+      A little reminder: I'm proud of you, mahal. ♡
+    </p>
+    <button onclick="nextReason()">Another reason I love you ♡</button>
+  </div>
+
+  <div class="message-box">
+    <p>Whenever you need a little reminder...</p>
+    <button onclick="littleReminder()">Tap for a reminder ✨</button>
+    <p id="reminder" hidden></p>
+  </div>
+
+  <div class="music-box">
+    <p>♫ A little song for you, mahal ♡</p>
+    <button onclick="toggleMusic()" id="musicButton">Play our song ♡</button>
+    <p id="musicStatus">Press play while you read my letter.</p>
+    <div id="player"></div>
+    <p class="fade-message">♡ · ˚ ✧ ˚ · ♡</p>
+  </div>
+
+  <p class="sparkles">♡ · ˚ ✧ ˚ · ♡</p>
+</main>
+
+<script>
+function revealLetter() {
+  document.getElementById("secret").hidden = false;
+}
+
+const reasons = [
+  "I love how you keep trying, even after hard days. ♡",
+  "I'm proud of the person you're becoming, mahal.",
+  "You make ordinary moments feel special. 💗",
+  "I love that I get to call you my girlfriend.",
+  "You don't have to be perfect to be loved by me.",
+  "Thank you for staying and trying with me. ♡",
+  "You deserve the same kindness you give others."
+];
+
+let reasonIndex = 0;
+
+function nextReason() {
+  const box = document.getElementById("reason");
+  box.style.opacity = 0;
+
+  setTimeout(() => {
+    box.textContent = reasons[reasonIndex];
+    reasonIndex = (reasonIndex + 1) % reasons.length;
+    box.style.opacity = 1;
+  }, 300);
+}
+
+const reminders = [
+  "Take a breath, mahal. You are doing your best. ♡",
+  "You deserve rest, kindness, and happiness.",
+  "I'm proud of you, even on difficult days.",
+  "You don't have to figure everything out today.",
+  "You are loved more than you know. 💗"
+];
+
+function littleReminder() {
+  const box = document.getElementById("reminder");
+  box.textContent = reminders[Math.floor(Math.random() * reminders.length)];
+  box.hidden = false;
+}
+
+let player;
+let musicStarted = false;
+
+function loadYouTube() {
+  if (window.YT && window.YT.Player) {
+    createPlayer();
+    return;
+  }
+
+  if (!document.getElementById("youtube-api")) {
+    const tag = document.createElement("script");
+    tag.id = "youtube-api";
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+  }
+}
+
+function createPlayer() {
+  if (player) return;
+
+  player = new YT.Player("player", {
+    height: "1",
+    width: "1",
+    videoId: "95HlilRpVFk",
+    playerVars: {
+      autoplay: 0,
+      controls: 0,
+      playsinline: 1
+    },
+    events: {
+      onReady: function() {}
+    }
+  });
+}
+
+window.onYouTubeIframeAPIReady = function() {
+  createPlayer();
+};
+
+function toggleMusic() {
+  if (!player || !player.playVideo) {
+    document.getElementById("musicStatus").textContent =
+      "Loading the song... tap Play our song again in a moment ♡";
+    loadYouTube();
+    return;
+  }
+
+  if (!musicStarted) {
+    player.playVideo();
+    musicStarted = true;
+    document.getElementById("musicButton").textContent = "Pause our song ♡";
+    document.getElementById("musicStatus").textContent =
+      "Enjoy our song while you read, mahal. ♡";
+  } else {
+    player.pauseVideo();
+    musicStarted = false;
+    document.getElementById("musicButton").textContent = "Play our song ♡";
+    document.getElementById("musicStatus").textContent = "Song paused ♡";
+  }
+}
+
+loadYouTube();
+
+const hearts = ["♡", "♥", "💕", "୨୧", "✧"];
+
+function createHeart() {
+  const heart = document.createElement("span");
+  heart.className = "floating-heart";
+  heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+  heart.style.left = Math.random() * 100 + "vw";
+  heart.style.fontSize = (16 + Math.random() * 20) + "px";
+  heart.style.animationDuration = (5 + Math.random() * 4) + "s";
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), 9500);
+}
+
+setInterval(createHeart, 650);
+</script>
+</body>
+</html>
