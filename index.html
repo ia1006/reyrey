@@ -5,82 +5,233 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>For My Reyrey ♡</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
+      padding: 30px 15px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-family: Georgia, serif;
-      background: #fff0f5;
       color: #8b4563;
       text-align: center;
-      padding: 20px;
-      box-sizing: border-box;
+      background: linear-gradient(135deg, #ffe4ee, #fff5f8, #ffd6e7);
+      overflow-x: hidden;
     }
 
     .letter {
-      background: white;
-      padding: 35px 25px;
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 440px;
+      padding: 32px 24px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid #ffd1e1;
       border-radius: 25px;
-      max-width: 420px;
-      box-shadow: 0 8px 25px #e8b7ca;
+      box-shadow: 0 12px 35px rgba(214, 107, 147, 0.2);
+      animation: appear 1s ease-out;
+    }
+
+    .main-heart {
+      font-size: 52px;
+      animation: heartbeat 1.4s infinite;
     }
 
     h1 {
       color: #d66b93;
-    }
-
-    .heart {
-      font-size: 45px;
-      margin: 15px;
+      font-size: 30px;
     }
 
     p {
+      font-size: 16px;
       line-height: 1.8;
-      font-size: 17px;
+    }
+
+    .sparkles {
+      color: #e88bad;
+      letter-spacing: 8px;
+      animation: sparkle 2s infinite alternate;
     }
 
     button {
+      margin-top: 12px;
+      padding: 13px 22px;
+      border: none;
+      border-radius: 25px;
       background: #e88bad;
       color: white;
-      border: none;
-      padding: 12px 22px;
-      border-radius: 25px;
       font-size: 16px;
       cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    button:hover {
+      transform: scale(1.06);
+      box-shadow: 0 5px 15px #f4b6ce;
     }
 
     #message {
       display: none;
-      margin-top: 20px;
+      padding-top: 12px;
+      animation: appear 0.8s ease;
+    }
+
+    .music-box {
+      margin-top: 22px;
+      padding: 15px;
+      border-radius: 18px;
+      background: #fff0f5;
+    }
+
+    .music-box p {
+      margin-top: 0;
+      font-size: 14px;
+    }
+
+    .music-box iframe {
+      width: 100%;
+      max-width: 340px;
+      height: 200px;
+      border: 0;
+      border-radius: 12px;
+    }
+
+    .floating-heart {
+      position: fixed;
+      bottom: -40px;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+      color: #ed8fb0;
+      animation: floatUp 7s linear forwards;
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+      15% {
+        opacity: 0.9;
+      }
+      100% {
+        transform: translateY(-115vh) rotate(35deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    @keyframes sparkle {
+      from { opacity: 0.5; }
+      to { opacity: 1; }
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="letter">
-    <div class="heart">♡</div>
+  <main class="letter">
+    <div class="sparkles">✧ ˚ · ✧</div>
+    <div class="main-heart">♡</div>
+
     <h1>For My Reyrey</h1>
+
     <p>To my dearest Reyrey,</p>
+
     <p>
       I made this little corner of the internet just for you.
       It may be simple, but every little part is made with love.
       I'm so happy that we found each other, and I hope I can
       keep giving you reasons to smile.
     </p>
-    <p>I'm so proud of you, mahal ko. ♡</p>
 
-    <button onclick="document.getElementById('message').style.display='block'">
-      Open my heart ♡
-    </button>
-
-    <p id="message">
-      After everything you've been through, you still try your best
-      to show up and keep going. I'm proud of you, and I hope you
-      know that you don't have to be perfect for me to love you.
-      Thank you for being you, Reyrey. I love you! ♡
+    <p>
+      I'm so proud of you, mahal ko. After everything,
+      you still try your best to show up and keep going.
+      You don't have to be perfect for me to love you.
     </p>
-  </div>
+
+    <button onclick="showMessage()">Open my heart ♡</button>
+
+    <div id="message">
+      <p>
+        Thank you for being you, Reyrey.
+        I hope this little website reminds you that
+        you're loved, appreciated, and never have to
+        do everything perfectly. I'm cheering for you,
+        always. I love you! ♡
+      </p>
+    </div>
+
+    <div class="music-box">
+      <p>♫ A little song for you, mahal ♡</p>
+
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/95HlilRpVFk"
+        title="A song for Reyrey"
+        allow="encrypted-media; picture-in-picture"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen>
+      </iframe>
+
+      <p>Press play and think of us ♡</p>
+    </div>
+
+    <p class="sparkles">♡ · ˚ ✧ ˚ · ♡</p>
+  </main>
+
+  <script>
+    function showMessage() {
+      document.getElementById("message").style.display = "block";
+    }
+
+    const hearts = ["♡", "♥", "💕", "୨୧", "✧"];
+
+    function createHeart() {
+      const heart = document.createElement("span");
+      heart.className = "floating-heart";
+      heart.textContent = hearts[
+        Math.floor(Math.random() * hearts.length)
+      ];
+
+      heart.style.left = Math.random() * 100 + "vw";
+      heart.style.fontSize = (16 + Math.random() * 20) + "px";
+      heart.style.animationDuration = (5 + Math.random() * 4) + "s";
+
+      document.body.appendChild(heart);
+
+      setTimeout(() => heart.remove(), 9500);
+    }
+
+    setInterval(createHeart, 650);
+  </script>
 </body>
 </html>
+
