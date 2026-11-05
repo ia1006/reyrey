@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Museum of Us</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --pink: #f2b9c5;
+  --rose: #a94f69;
+  --wine: #641f3b;
+  --cream: #f8e8d5;
+  --gold: #d9ac72;
+  --dark: #3d1b2b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--dark);
+  font-family: 'Nunito', sans-serif;
+  background:
+    linear-gradient(135deg, rgba(100,31,59,.88), rgba(169,79,105,.88)),
+    repeating-linear-gradient(45deg, #a94f69 0 12px, #91415c 12px 24px);
+}
+
+button { font: inherit; cursor: pointer; }
+
+.pixel {
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}
+
+#intro {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.welcome-card {
+  width: min(680px, 100%);
+  padding: 35px 24px;
+  background: var(--cream);
+  border: 6px solid var(--gold);
+  box-shadow: 10px 10px 0 var(--wine);
+}
+
+.pixel-title {
+  font-family: 'Press Start 2P', monospace;
+  color: var(--wine);
+  font-size: clamp(20px, 4vw, 34px);
+  line-height: 1.7;
+}
+
+.small-pixel {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  line-height: 1.9;
+}
+
+.enter-btn, .music-btn, .back-btn, .room-btn, .unlock-btn {
+  border: 3px solid var(--wine);
+  background: var(--rose);
+  color: white;
+  padding: 12px 18px;
+  font-weight: 800;
+  box-shadow: 4px 4px 0 var(--wine);
+  transition: transform .15s;
+}
+
+.enter-btn:hover, .music-btn:hover, .back-btn:hover,
+.room-btn:hover, .unlock-btn:hover {
+  transform: translateY(-3px);
+}
+
+#museum { display: none; padding: 18px; }
+
+.topbar {
+  max-width: 1100px;
+  margin: 0 auto 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--cream);
+}
+
+.topbar h2 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.music-btn { padding: 9px 12px; }
+
+.museum-frame {
+  max-width: 1100px;
+  margin: auto;
+  background: var(--cream);
+  border: 8px solid var(--gold);
+  box-shadow: 9px 9px 0 var(--wine);
+  padding: clamp(16px, 4vw, 32px);
+}
+
+.museum-header {
+  text-align: center;
+  padding: 12px;
+  border-bottom: 3px dashed var(--gold);
+}
+
+.museum-header h1 {
+  font-family: 'Press Start 2P', monospace;
+  color: var(--wine);
+  font-size: clamp(17px, 3vw, 25px);
+  line-height: 1.8;
+}
+
+.museum-header p { margin-top: 5px; }
+
+.characters {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px 5px 10px;
+  min-height: 205px;
+}
+
+.character {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.character svg {
+  width: 105px;
+  height: 150px;
+  image-rendering: pixelated;
+}
+
+.character.short svg {
+  height: 128px;
+  width: 90px;
+}
+
+.floor {
+  height: 18px;
+  max-width: 300px;
+  margin: 0 auto 18px;
+  background: repeating-linear-gradient(
+    90deg, #d8ad83 0 22px, #c99470 22px 24px
+  );
+  border: 2px solid #a66c58;
+}
+
+.room-menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.room-btn {
+  min-height: 85px;
+  background: #f2c4c8;
+  color: var(--wine);
+  border-color: var(--rose);
+  box-shadow: 4px 4px 0 #a94f69;
+}
+
+.room-btn span {
+  display: block;
+  font-size: 11px;
+  margin-top: 7px;
+}
+
+.room-content {
+  display: none;
+  padding: 22px 8px;
+  border-top: 3px dashed var(--gold);
+  text-align: center;
+  animation: appear .35s ease;
+}
+
+.room-content.active { display: block; }
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.room-content h2 {
+  font-family: 'Press Start 2P', monospace;
+  color: var(--wine);
+  font-size: clamp(13px, 2.5vw, 18px);
+  line-height: 1.9;
+}
+
+.room-content p {
+  max-width: 650px;
+  margin: 12px auto;
+  line-height: 1.8;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+  max-width: 750px;
+  margin: 22px auto;
+}
+
+.art-frame {
+  background: #fff8ee;
+  padding: 10px;
+  border: 5px solid var(--gold);
+  box-shadow: 4px 4px 0 #c58e65;
+}
+
+.art-frame img {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  border: 3px solid var(--wine);
+  background: #f2d6d2;
+}
+
+.art-frame p {
+  font-weight: 800;
+  font-size: 13px;
+  margin: 10px 0 2px;
+}
+
+.note {
+  max-width: 620px;
+  margin: 18px auto;
+  padding: 18px;
+  background: #f7d9d9;
+  border: 2px dashed var(--rose);
+  line-height: 1.9;
+}
+
+.secret {
+  display: none;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background: #fff8ee;
+  border: 4px double var(--gold);
+  line-height: 1.9;
+}
+
+.secret.show { display: block; }
+
+.star {
+  display: inline-block;
+  border: 0;
+  background: transparent;
+  font-size: 28px;
+  margin: 8px;
+  animation: twinkle 1.8s infinite alternate;
+}
+
+@keyframes twinkle {
+  to { transform: scale(1.2) rotate(12deg); }
+}
+
+.letter {
+  max-width: 680px;
+  margin: 20px auto;
+  padding: 22px;
+  text-align: left;
+  background: #fff8ee;
+  border: 5px double var(--gold);
+  line-height: 1.9;
+  white-space: pre-line;
+}
+
+.back-btn {
+  margin-top: 15px;
+  padding: 9px 14px;
+}
+
+footer {
+  text-align: center;
+  color: var(--cream);
+  padding: 24px 8px;
+  font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="museumMusic" loop>
+  <source src="museum-music.mp3" type="audio/mpeg">
+</audio>
+
+<section id="intro">
+  <div class="welcome-card">
+    <p class="small-pixel">A LITTLE PLACE MADE FOR TWO</p>
+    <h1 class="pixel-title">The Museum<br>of Us</h1>
+    <p>Some memories deserve their own little museum.</p>
+    <p>Welcome, my favorite visitor.</p>
+    <button class="enter-btn" onclick="enterMuseum()">ENTER THE MUSEUM ♡</button>
+    <p class="small-pixel" style="margin-top:22px;">EST. NOVEMBER 06, 2026</p>
+  </div>
+</section>
+
+<main id="museum">
+  <div class="topbar">
+    <h2>THE MUSEUM OF US</h2>
+    <button class="music-btn" onclick="toggleMusic()" id="musicButton">♫ Music: OFF</button>
+  </div>
+
+  <div class="museum-frame">
+    <header class="museum-header">
+      <p class="small-pixel">WELCOME, DEAR VISITOR</p>
+      <h1>A COLLECTION OF LITTLE MOMENTS</h1>
+      <p>Every room holds a little piece of our story.</p>
+    </header>
+
+    <div class="characters">
+      <!-- Reyrey: taller, masc, layered dark brown hair -->
+      <div class="character">
+        <svg class="pixel" viewBox="0 0 64 96" aria-label="Taller character">
+          <rect x="18" y="4" width="28" height="8" fill="#38251f"/>
+          <rect x="10" y="12" width="44" height="8" fill="#38251f"/>
+          <rect x="10" y="20" width="8" height="22" fill="#38251f"/>
+          <rect x="46" y="20" width="8" height="22" fill="#38251f"/>
+          <rect x="18" y="20" width="28" height="28" fill="#d99a78"/>
+          <rect x="22" y="30" width="4" height="4" fill="#38251f"/>
+          <rect x="38" y="30" width="4" height="4" fill="#38251f"/>
+          <rect x="26" y="40" width="12" height="3" fill="#9d4c54"/>
+          <rect x="14" y="48" width="36" height="28" fill="#a72f4e"/>
+          <rect x="6" y="50" width="8" height="22" fill="#d99a78"/>
+          <rect x="50" y="50" width="8" height="22" fill="#d99a78"/>
+          <rect x="18" y="76" width="10" height="16" fill="#493044"/>
+          <rect x="36" y="76" width="10" height="16" fill="#493044"/>
+          <rect x="16" y="90" width="14" height="6" fill="#38251f"/>
+          <rect x="34" y="90" width="14" height="6" fill="#38251f"/>
+        </svg>
+        <div>REYREY</div>
+      </div>
+
+      <!-- You: shorter, fem, long wavy dark brown hair -->
+      <div class="character short">
+        <svg class="pixel" viewBox="0 0 64 96" aria-label="Shorter character">
+          <rect x="16" y="6" width="32" height="10" fill="#38251f"/>
+          <rect x="10" y="16" width="44" height="10" fill="#38251f"/>
+          <rect x="8" y="26" width="10" height="44" fill="#38251f"/>
+          <rect x="46" y="26" width="10" height="44" fill="#38251f"/>
+          <rect x="18" y="20" width="28" height="32" fill="#e4ae91"/>
+          <rect x="22" y="32" width="4" height="4" fill="#38251f"/>
+          <rect x="38" y="32" width="4" height="4" fill="#38251f"/>
+          <rect x="28" y="43" width="10" height="3" fill="#b65d6c"/>
+          <rect x="14" y="52" width="36" height="24" fill="#c44760"/>
+          <path d="M14 74 H50 L56 90 H8 Z" fill="#d66d80"/>
+          <rect x="6" y="56" width="8" height="18" fill="#e4ae91"/>
+          <rect x="50" y="56" width="8" height="18" fill="#e4ae91"/>
+          <rect x="20" y="90" width="10" height="6" fill="#493044"/>
+          <rect x="36" y="90" width="10" height="6" fill="#493044"/>
+          <rect x="10" y="78" width="5" height="7" fill="#38251f"/>
+          <rect x="49" y="78" width="5" height="7" fill="#38251f"/>
+        </svg>
+        <div>YOU ♡</div>
+      </div>
+    </div>
+
+    <div class="floor"></div>
+
+    <p class="small-pixel" style="text-align:center;">CHOOSE AN EXHIBIT TO EXPLORE</p>
+
+    <nav class="room-menu">
+      <button class="room-btn" onclick="openRoom('beginning')">01 ♡<span>The Beginning of us </span></button>
+      <button class="room-btn" onclick="openRoom('person')">02 ✿<span>My Favorite Person</span></button>
+      <button class="room-btn" onclick="openRoom('moments')">03 ☆<span>Little Things I Keep</span></button>
+      <button class="room-btn" onclick="openRoom('timeline')">04 ♧<span>Our Timeline</span></button>
+      <button class="room-btn" onclick="openRoom('unfinished')">05 ♡<span>The Unfinished Collection</span></button>
+      <button class="room-btn" onclick="openRoom('letter')">06 ✉<span>The Last Exhibit</span></button>
+    </nav>
+
+    <section class="room-content" id="beginning">
+      <h2>THE BEGINNING</h2>
+      <p class="small-pixel">EXHIBIT NO. 001</p>
+      <div class="note">
+        Every story has a beginning. Ours started with a rainy day,
+        a guitar that needed fixing, and a little moment that eventually
+        became something important to me.
+        <br><br>
+        I didn't know then that you would become one of my favorite parts
+        of every day.
+      </div>
+      <button class="back-btn" onclick="closeRooms()">← BACK TO THE MUSEUM</button>
+    </section>
+
+    <section class="room-content" id="person">
+      <h2>MY FAVORITE PERSON</h2>
+      <p class="small-pixel">EXHIBIT NO. 002</p>
+      <div class="note">
+        If this museum had its most valuable artwork, it would be you.
+        Not because you're perfect, but because you're you.
+        <br><br>
+        The person with the most sweetest soul, the most cutest person,
+        and a place in my heart that nobody else could fill.
+      </div>
+      <button class="back-btn" onclick="closeRooms()">← BACK TO THE MUSEUM</button>
+    </section>
+
+    <section class="room-content" id="moments">
+      <h2>LITTLE THINGS I KEEP</h2>
+      <p class="small-pixel">EXHIBIT NO. 003</p>
+      <p>Some of my favorite memories are the ones I never want to forget.</p>
+
+      <div class="gallery">
+        <div class="art-frame">
+          <img src="1.jpg" alt="A memory of us">
+          <p>A moment worth keeping ♡</p>
+        </div>
+        <div class="art-frame">
+          <img src="S.jpg" alt="Another memory of us">
+          <p>One of my favorite days</p>
+        </div>
+        <div class="art-frame">
+          <img src="S%20(2).jpg" alt="A special memory">
+          <p>Something I'll always treasure</p>
+        </div>
+      </div>
+      <p>You can replace these pictures with other photos whenever you like.</p>
+      <button class="back-btn" onclick="closeRooms()">← BACK TO THE MUSEUM</button>
+    </section>
+
+    <section class="room-content" id="timeline">
+      <h2>OUR TIMELINE</h2>
+      <p class="small-pixel">EXHIBIT NO. 004</p>
+      <div class="note">
+        <b>A rainy day</b><br>
+        The little beginning of our story.
+        <br><br>
+        <b>August 6, 2026</b><br>
+        The day I reached out to you.
+        <br><br>
+        <b>October 6, 2026</b><br>
+        The day I said yes.
+        <br><br>
+        <b>November 6, 2026</b><br>
+        Our first monthsary. One month of being us.
+      </div>
+      <button class="back-btn" onclick="closeRooms()">← BACK TO THE MUSEUM</button>
+    </section>
+
+    <section class="room-content" id="unfinished">
+      <h2>THE UNFINISHED COLLECTION</h2>
+      <p class="small-pixel">EXHIBIT NO. 005</p>
+      <div class="note">
+        This collection is still growing.
+        <br><br>
+        There are more pictures to take, places to visit,
+        little adventures to experience, and memories we haven't
+        made yet.
+        <br><br>
+        I hope we keep adding to this collection, one little moment
+        at a time.
+      </div>
+      <button class="star" onclick="showSecret()" aria-label="Reveal secret">✦</button>
+      <p class="small-pixel">PSSST... TAP THE LITTLE STAR</p>
+      <div class="secret" id="secretMessage">
+        A little secret: if I could choose one person to make
+        a thousand more memories with, it would still be you. ♡
+      </div>
+      <button class="back-btn" onclick="closeRooms()">← BACK TO THE MUSEUM</button>
+    </section>
+
+    <section class="room-content" id="letter">
+      <h2>THE LAST EXHIBIT</h2>
+      <p class="small-pixel">A LETTER, JUST FOR YOU</p>
+      <p>There's one last thing waiting for you in this museum.</p>
+      <button class="unlock-btn" onclick="unlockLetter()">OPEN THE ENVELOPE ✉</button>
+
+      <div class="secret" id="finalLetter">
+        <div class="letter">
+          <b>To my dearest Reyrey,</b>
+
+          Happy first monthsary, mahal ko.
+
+          One month ago, you started courting me, and now here we are,
+          making our own little memories together. I wanted to make
+          something that would remind you how much I treasure even
+          the smallest moments with you.
+
+          Thank you for being someone I can run to when everything
+          feels too loud. Thank you for seeing my efforts, even the
+          little ones, and for continuing to show up.
+
+          I know our story won't always be perfect. There will be
+          difficult days, misunderstandings, and things we'll have
+          to figure out together. But I hope you know that I want
+          to keep choosing you and growing with you.
+
+          This museum may have a last exhibit, but I hope our story
+          keeps going for a very long time.
+
+          I love you. Happy first monthsary. ♡
+
+          Always,
+          Ia cute
+        </div>
+      </div>
+      <button class="back-btn" onclick="closeRooms()">← BACK TO THE MUSEUM</button>
+    </section>
+
+  </div>
+
+  <footer>MADE WITH LOVE · NOVEMBER 06, 2026 ♡</footer>
+</main>
+
+<script>
+const music = document.getElementById('museumMusic');
+const musicButton = document.getElementById('musicButton');
+
+function enterMuseum() {
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('museum').style.display = 'block';
+
+  music.play().then(() => {
+    musicButton.textContent = '♫ Music: ON';
+  }).catch(() => {
+    musicButton.textContent = '♫ Music: OFF';
+  });
+}
+
+function toggleMusic() {
+  if (music.paused) {
+    music.play().then(() => {
+      musicButton.textContent = '♫ Music: ON';
+    }).catch(() => {
+      musicButton.textContent = '♫ Music: OFF';
+    });
+  } else {
+    music.pause();
+    musicButton.textContent = '♫ Music: OFF';
+  }
+}
+
+function openRoom(roomId) {
+  document.querySelectorAll('.room-content').forEach(room => {
+    room.classList.remove('active');
+  });
+
+  document.getElementById(roomId).classList.add('active');
+  document.getElementById(roomId).scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+}
+
+function closeRooms() {
+  document.querySelectorAll('.room-content').forEach(room => {
+    room.classList.remove('active');
+  });
+
+  document.querySelector('.room-menu').scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  });
+}
+
+function showSecret() {
+  document.getElementById('secretMessage').classList.toggle('show');
+}
+
+function unlockLetter() {
+  document.getElementById('finalLetter').classList.add('show');
+}
+</script>
+
+</body>
+</html>
