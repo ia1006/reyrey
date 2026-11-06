@@ -1,0 +1,536 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Little Universe</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #211b2b;
+  color: #fff1ed;
+  font-family: 'Nunito', sans-serif;
+  text-align: center;
+}
+
+#intro {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+  background: radial-gradient(circle, #75465e, #211b2b 75%);
+}
+
+h1, h2, .pixel {
+  font-family: 'Press Start 2P', monospace;
+  line-height: 1.8;
+}
+
+h1 { font-size: clamp(19px, 4vw, 32px); }
+
+p { line-height: 1.8; }
+
+button {
+  border: 2px solid #ffe0df;
+  background: #b85f78;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 9px;
+  font-weight: 800;
+  cursor: pointer;
+  margin: 8px;
+}
+
+button:hover { background: #d17b91; }
+
+#game {
+  display: none;
+  padding: 12px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+#topbar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+#roomName {
+  font-family: 'Press Start 2P';
+  font-size: 11px;
+  line-height: 1.8;
+  color: #ffd1d9;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin: auto;
+  border: 5px solid #e9b7c3;
+  border-radius: 8px;
+  image-rendering: pixelated;
+  background: #6c5261;
+  touch-action: none;
+}
+
+#instructions {
+  font-size: 13px;
+  color: #f5d5dc;
+}
+
+#controls {
+  margin: 12px auto;
+  display: grid;
+  grid-template-columns: repeat(3, 55px);
+  justify-content: center;
+  gap: 5px;
+}
+
+#controls button {
+  margin: 0;
+  padding: 12px;
+  font-size: 18px;
+}
+
+#message {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #160f1dcc;
+  z-index: 5;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+}
+
+#messageCard {
+  width: min(650px, 95vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #382638;
+  border: 3px solid #e9b7c3;
+  border-radius: 12px;
+  padding: 25px;
+  text-align: left;
+}
+
+#messageTitle {
+  font-family: 'Press Start 2P';
+  color: #ffc6d4;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+#messageText {
+  white-space: pre-line;
+  line-height: 1.9;
+  font-size: 15px;
+}
+
+#poem {
+  white-space: pre-line;
+  line-height: 2;
+  font-size: 14px;
+}
+
+.small { font-size: 11px; color: #f4cbd5; }
+</style>
+</head>
+
+<body>
+
+<section id="intro">
+  <div class="pixel">♡ A LITTLE WORLD ♡</div>
+  <h1>OUR LITTLE UNIVERSE</h1>
+  <p>A place made of little moments, familiar memories, and two people who found each other.</p>
+  <p class="small">A little adventure for you, Reyrey.</p>
+  <button onclick="startGame()">ENTER OUR WORLD ♡</button>
+</section>
+
+<main id="game">
+  <div id="topbar">
+    <div id="roomName">ROOM 001</div>
+    <button onclick="toggleMusic()" id="musicButton">♫ MUSIC ON/OFF</button>
+  </div>
+
+  <canvas id="world" width="800" height="480"></canvas>
+
+  <p id="instructions">Move: WASD / Arrow keys · Interact: E or SPACE</p>
+
+  <div id="controls">
+    <span></span><button onpointerdown="hold('up')" onpointerup="release()" onpointerleave="release()">↑</button><span></span>
+    <button onpointerdown="hold('left')" onpointerup="release()" onpointerleave="release()">←</button>
+    <button onpointerdown="hold('down')" onpointerup="release()" onpointerleave="release()">↓</button>
+    <button onpointerdown="hold('right')" onpointerup="release()" onpointerleave="release()">→</button>
+  </div>
+
+  <p class="small">Explore the rooms. Look for glowing objects and talk to each other.</p>
+</main>
+
+<div id="message">
+  <div id="messageCard">
+    <div id="messageTitle"></div>
+    <p id="messageText"></p>
+    <button onclick="closeMessage()">CLOSE ♡</button>
+  </div>
+</div>
+
+<audio id="music" loop>
+  <source src="museum-music.mp3.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const canvas = document.getElementById("world");
+const ctx = canvas.getContext("2d");
+
+const music = document.getElementById("music");
+
+const me = new Image();
+me.src = "Screenshot 2026-09-05 185453.png";
+
+const reyrey = new Image();
+reyrey.src = "Screenshot 2026-09-05 185026.png";
+
+let room = 0;
+let player = {x: 130, y: 340, speed: 3};
+let partner = {x: 180, y: 340};
+let keys = {};
+let moving = "";
+let musicOn = true;
+let messageOpen = false;
+
+const rooms = [
+  {
+    name: "THE BEGINNING",
+    color: "#74566a",
+    objects: [
+      {x: 400, y: 220, emoji: "🌹", title: "A LITTLE BEGINNING",
+       text: "Every story begins somewhere.\n\nOurs began with little moments, unexpected conversations, and a chance neither of us knew would mean so much."},
+      {x: 650, y: 350, emoji: "💌", title: "THE FIRST HELLO",
+       text: "Sometimes, something as simple as saying hello can open a door to a whole new world.\n\nAnd somehow, that hello became us."}
+    ]
+  },
+  {
+    name: "THE MEMORY ROOM",
+    color: "#66516e",
+    objects: [
+      {x: 250, y: 210, emoji: "🖼️", title: "A MEMORY TO KEEP",
+       text: "Some moments may seem ordinary while they're happening.\n\nBut later, they become the memories we wish we could visit again."},
+      {x: 550, y: 330, emoji: "⭐", title: "MY FAVORITE PERSON",
+       text: "Out of all the people I could have met, I'm grateful that I got to know you.\n\nYou made ordinary days feel special."}
+    ]
+  },
+  {
+    name: "THE GARDEN",
+    color: "#536d61",
+    objects: [
+      {x: 350, y: 230, emoji: "🍓", title: "A LITTLE STRAWBERRY",
+       text: "A little strawberry in our little world.\n\nA reminder that the sweetest things can come in the smallest packages."},
+      {x: 600, y: 340, emoji: "🌷", title: "GROWING TOGETHER",
+       text: "I hope we keep growing, learning, and understanding each other.\n\nThere is still so much of life waiting for us."}
+    ]
+  },
+  {
+    name: "THE STAR ROOM",
+    color: "#343d68",
+    objects: [
+      {x: 400, y: 210, emoji: "🌟", title: "MY STAR",
+       text: "You are my star, Reyrey.\n\nNot because every day is easy, but because I see how you continue to shine even when life asks so much of you.\n\nI am proud of you, even for the little things you might overlook."},
+      {x: 650, y: 350, emoji: "🌙", title: "A PLACE TO REST",
+       text: "I hope you always remember that you don't have to carry everything alone.\n\nYou deserve kindness, patience, and a place where you can rest, too."}
+    ]
+  },
+  {
+    name: "THE RED STRING",
+    color: "#754b59",
+    objects: [
+      {x: 300, y: 230, emoji: "❤️", title: "THE RED STRING",
+       text: "Maybe it was coincidence. Maybe it was timing.\n\nMaybe it was a little red string finding its way through two different lives.\n\nWhatever it was, I'm glad our paths crossed."},
+      {x: 600, y: 340, emoji: "🧸", title: "A LITTLE PROMISE",
+       text: "I can't promise that every day will be perfect.\n\nBut I hope we keep choosing to understand each other, and keep making memories along the way."}
+    ]
+  },
+  {
+    name: "THE LAST EXHIBIT",
+    color: "#684354",
+    objects: [
+      {x: 400, y: 220, emoji: "💖", title: "PERHAPS, IT WAS ALWAYS YOU",
+       poem: true}
+    ]
+  }
+];
+
+const poem = `perhaps, it was always you.
+
+for the longest time, i wondered
+if somewhere in this world,
+there was someone whose presence
+would make all the waiting make sense.
+
+someone i would meet without knowing
+that one day, their name
+would become a part of my everyday thoughts.
+someone who would turn an ordinary hello
+into a memory i'd keep returning to.
+
+and then, there was you.
+
+you became my star, reyrey.
+not because your life has always been bright,
+but because i've seen how you continue to shine
+even when the world asks so much of you.
+
+i see the way you carry things,
+how you make space for everyone,
+how you keep showing up,
+even when you have your own things to figure out.
+and i hope someone reminds you, too,
+that even the strongest shoulders
+deserve somewhere to rest.
+
+i am so proud of you.
+more than i probably know how to say.
+i'm proud of every little step,
+every risk you've been willing to take,
+and every time you've chosen to try
+even without knowing how things would turn out.
+
+you've crossed uncertain roads for us,
+and i hope you know
+that you never have to prove your love
+by carrying everything alone.
+i don't just want to be someone
+who receives all the love you give.
+i want to be someone
+who reminds you that you deserve it, too.
+
+sometimes, i think about how strange it is
+that out of all the people,
+all the places,
+and all the possible beginnings,
+ours happened the way it did.
+
+maybe it was coincidence.
+maybe it was timing.
+maybe it was that little red string
+finding its way through two different lives.
+
+but if i could return to that beginning,
+knowing everything i know now,
+i would still take the chance.
+i would still let myself wonder.
+i would still choose to know you.
+
+because perhaps,
+all those little moments were leading somewhere.
+perhaps, the person i had yet to meet
+was someone i would one day call my home
+without needing a place to belong.
+
+and if life keeps giving us new roads,
+i hope we get to walk through them together.
+i want to see the stars you haven't reached yet,
+the dreams you haven't fulfilled,
+and all the versions of yourself
+you have yet to become.
+
+i hope you never forget
+that someone is looking at you
+and seeing more than you realize.
+
+someone who sees your efforts.
+someone who admires your heart.
+someone who is endlessly proud of you.
+
+and that someone is me.
+
+maybe it was you all along.
+maybe, after all the waiting and wondering,
+it really was you.
+
+happy first monthsary, my reyrey.
+if i had to find you all over again,
+i'd gladly take the same little risk.`;
+
+function startGame() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  music.play().catch(() => {});
+  draw();
+}
+
+function toggleMusic() {
+  if (music.paused) {
+    music.play().catch(() => {});
+    musicOn = true;
+  } else {
+    music.pause();
+    musicOn = false;
+  }
+  document.getElementById("musicButton").textContent =
+    musicOn ? "♫ MUSIC ON/OFF" : "♫ MUSIC OFF";
+}
+
+function hold(direction) { moving = direction; }
+function release() { moving = ""; }
+
+document.addEventListener("keydown", e => {
+  keys[e.key.toLowerCase()] = true;
+  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) e.preventDefault();
+  if ((e.key.toLowerCase() === "e" || e.key === " ") && !messageOpen) interact();
+});
+
+document.addEventListener("keyup", e => {
+  keys[e.key.toLowerCase()] = false;
+});
+
+function move() {
+  if (messageOpen) return;
+
+  let dx = 0, dy = 0;
+
+  if (keys["arrowup"] || keys["w"] || moving === "up") dy = -1;
+  if (keys["arrowdown"] || keys["s"] || moving === "down") dy = 1;
+  if (keys["arrowleft"] || keys["a"] || moving === "left") dx = -1;
+  if (keys["arrowright"] || keys["d"] || moving === "right") dx = 1;
+
+  if (dx && dy) {
+    dx *= 0.707;
+    dy *= 0.707;
+  }
+
+  player.x = Math.max(35, Math.min(765, player.x + dx * player.speed));
+  player.y = Math.max(100, Math.min(430, player.y + dy * player.speed));
+
+  partner.x += (player.x - 45 - partner.x) * 0.035;
+  partner.y += (player.y - partner.y) * 0.035;
+}
+
+function draw() {
+  const r = rooms[room];
+  ctx.clearRect(0,0,800,480);
+
+  ctx.fillStyle = r.color;
+  ctx.fillRect(0,0,800,480);
+
+  ctx.fillStyle = "#e7c1bc";
+  ctx.fillRect(0,70,800,8);
+  ctx.fillRect(0,445,800,35);
+  ctx.fillRect(15,80,8,365);
+  ctx.fillRect(777,80,8,365);
+
+  // Floor tiles
+  ctx.strokeStyle = "#ffffff18";
+  for(let x=25;x<800;x+=50) {
+    for(let y=100;y<445;y+=50) {
+      ctx.strokeRect(x,y,50,50);
+    }
+  }
+
+  // Room decorations
+  ctx.font = "30px serif";
+  ctx.fillText("✦", 65, 125);
+  ctx.fillText("✦", 720, 125);
+
+  r.objects.forEach(o => {
+    ctx.fillStyle = "#2d203c";
+    ctx.fillRect(o.x-32,o.y-28,64,64);
+    ctx.strokeStyle = "#f8d0d8";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(o.x-32,o.y-28,64,64);
+    ctx.font = "32px serif";
+    ctx.fillText(o.emoji,o.x-17,o.y+13);
+  });
+
+  // Characters
+  if (reyrey.complete && reyrey.naturalWidth > 0) {
+    ctx.drawImage(reyrey,partner.x-22,partner.y-55,44,55);
+  } else {
+    ctx.fillStyle = "#c43f57";
+    ctx.fillRect(partner.x-12,partner.y-35,24,35);
+  }
+
+  if (me.complete && me.naturalWidth > 0) {
+    ctx.drawImage(me,player.x-22,player.y-55,44,55);
+  } else {
+    ctx.fillStyle = "#f3a5bd";
+    ctx.fillRect(player.x-12,player.y-35,24,35);
+  }
+
+  ctx.fillStyle = "#fff";
+  ctx.font = "12px Nunito";
+  ctx.fillText("YOU",player.x-12,player.y-60);
+  ctx.fillText("REYREY",partner.x-22,partner.y-60);
+
+  document.getElementById("roomName").textContent =
+    "ROOM 00" + (room+1) + " — " + r.name;
+
+  move();
+  requestAnimationFrame(draw);
+}
+
+function interact() {
+  let nearby = rooms[room].objects.find(o =>
+    Math.hypot(player.x-o.x,player.y-o.y) < 85
+  );
+
+  if (nearby) {
+    showMessage(nearby);
+    return;
+  }
+
+  if (player.x > 735 && room < rooms.length-1) {
+    room++;
+    player.x = 55;
+    player.y = 340;
+    partner.x = 15;
+    partner.y = 340;
+    return;
+  }
+
+  if (player.x < 60 && room > 0) {
+    room--;
+    player.x = 735;
+    player.y = 340;
+    partner.x = 700;
+    partner.y = 340;
+    return;
+  }
+
+  showMessage({
+    title: "KEEP EXPLORING",
+    text: "Walk closer to an exhibit and press E to discover its memory.\n\nThe doorway on the right leads to the next room."
+  });
+}
+
+function showMessage(o) {
+  messageOpen = true;
+  document.getElementById("messageTitle").textContent = o.title;
+  document.getElementById("messageText").textContent =
+    o.poem ? poem : o.text;
+  document.getElementById("message").style.display = "flex";
+}
+
+function closeMessage() {
+  document.getElementById("message").style.display = "none";
+  messageOpen = false;
+}
+
+draw();
+</script>
+
+</body>
+</html>
