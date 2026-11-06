@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Museum of Us</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --pink: #f2b9c5;
+  --rose: #a94f69;
+  --wine: #641f3b;
+  --cream: #f8e8d5;
+  --gold: #d9ac72;
+  --dark: #3d1b2b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #641f3b, #a94f69);
+  color: var(--cream);
+  font-family: 'Nunito', sans-serif;
+  text-align: center;
+}
+
+button { font: inherit; cursor: pointer; }
+
+.pixel {
+  image-rendering: pixelated;
+}
+
+#intro {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.welcome {
+  background: var(--cream);
+  color: var(--dark);
+  border: 7px solid var(--gold);
+  box-shadow: 10px 10px 0 #3d1b2b;
+  padding: 35px 22px;
+  width: min(650px, 95%);
+}
+
+h1, h2, .pixel-text {
+  font-family: 'Press Start 2P', monospace;
+  line-height: 1.8;
+}
+
+h1 { color: var(--wine); font-size: clamp(20px, 5vw, 34px); }
+.pixel-text { font-size: 10px; line-height: 2; }
+
+button {
+  border: 3px solid var(--wine);
+  background: var(--rose);
+  color: white;
+  padding: 12px 18px;
+  box-shadow: 4px 4px 0 var(--wine);
+  font-weight: 800;
+}
+
+button:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--wine); }
+
+#game { display: none; padding: 12px; }
+
+.topbar {
+  max-width: 1000px;
+  margin: 0 auto 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.topbar h2 {
+  font-size: 12px;
+  margin: 5px;
+}
+
+#gameCanvas {
+  display: block;
+  width: min(960px, 100%);
+  height: auto;
+  margin: auto;
+  border: 8px solid var(--gold);
+  box-shadow: 8px 8px 0 var(--dark);
+  background: #6d4051;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+.instructions {
+  max-width: 960px;
+  margin: 14px auto;
+  padding: 12px;
+  background: var(--cream);
+  color: var(--dark);
+  border: 3px solid var(--gold);
+  font-weight: 800;
+}
+
+#messageBox {
+  display: none;
+  position: fixed;
+  z-index: 5;
+  inset: 0;
+  background: #210c19cc;
+  place-items: center;
+  padding: 18px;
+}
+
+#messageBox.show { display: grid; }
+
+.message-card {
+  width: min(580px, 100%);
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--cream);
+  color: var(--dark);
+  border: 7px double var(--gold);
+  box-shadow: 8px 8px 0 var(--wine);
+  padding: 25px;
+}
+
+.message-card h2 {
+  color: var(--wine);
+  font-size: 14px;
+}
+
+.message-card p {
+  line-height: 1.9;
+  white-space: pre-line;
+}
+
+#controls {
+  display: none;
+  margin: 15px auto;
+  width: 190px;
+  grid-template-columns: repeat(3, 55px);
+  grid-template-rows: repeat(2, 50px);
+  gap: 5px;
+  justify-content: center;
+}
+
+#controls button {
+  padding: 5px;
+  font-size: 20px;
+  touch-action: none;
+}
+
+#controls .up { grid-column: 2; }
+#controls .left { grid-column: 1; grid-row: 2; }
+#controls .down { grid-column: 2; grid-row: 2; }
+#controls .right { grid-column: 3; grid-row: 2; }
+
+#interact {
+  display: none;
+  margin: 10px auto;
+}
+
+footer { padding: 20px; font-size: 12px; }
+
+@media (pointer: coarse), (max-width: 700px) {
+  #controls { display: grid; }
+  #interact { display: inline-block; }
+}
+</style>
+</head>
+
+<body>
+
+<audio id="music" loop>
+  <source src="museum-music.mp3" type="audio/mpeg">
+</audio>
+
+<section id="intro">
+  <div class="welcome">
+    <p class="pixel-text">A LITTLE PLACE MADE FOR TWO</p>
+    <h1>THE MUSEUM<br>OF US</h1>
+    <p>Some memories deserve their own little world.</p>
+    <p>Welcome, my favorite visitor. ♡</p>
+    <button onclick="startGame()">ENTER THE MUSEUM ♡</button>
+    <p class="pixel-text" style="margin-top:25px">EST. NOVEMBER 06, 2026</p>
+  </div>
+</section>
+
+<main id="game">
+  <div class="topbar">
+    <h2>THE MUSEUM OF US ♡</h2>
+    <button onclick="toggleMusic()" id="musicBtn">♫ MUSIC: OFF</button>
+  </div>
+
+  <canvas id="gameCanvas" width="960" height="600"></canvas>
+
+  <div class="instructions" id="hint">
+    Use WASD or ARROW KEYS to move. Walk near a door and press E to enter.
+  </div>
+
+  <button id="interact" onclick="interact()">INTERACT ♡</button>
+
+  <div id="controls">
+    <button class="up" data-dir="up">▲</button>
+    <button class="left" data-dir="left">◀</button>
+    <button class="down" data-dir="down">▼</button>
+    <button class="right" data-dir="right">▶</button>
+  </div>
+
+  <footer>MADE WITH LOVE · NOVEMBER 06, 2026 ♡</footer>
+</main>
+
+<div id="messageBox">
+  <div class="message-card">
+    <h2 id="messageTitle">EXHIBIT</h2>
+    <p id="messageText"></p>
+    <button onclick="closeMessage()">CLOSE ♡</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const music = document.getElementById("music");
+const musicBtn = document.getElementById("musicBtn");
+
+const me = new Image();
+me.src = "Screenshot 2026-09-05 185453.png";
+
+const reyrey = new Image();
+reyrey.src = "Screenshot 2026-09-05 185026.png";
+
+const rooms = [
+  {
+    name: "THE BEGINNING",
+    title: "EXHIBIT 001 — THE BEGINNING",
+    text: `Every story has a beginning.
+
+Ours started with a rainy day, a guitar that needed fixing, and a little moment that eventually became something important to me.
+
+I didn't know then that you would become one of my favorite parts of every day.`
+  },
+  {
+    name: "MY FAVORITE PERSON",
+    title: "EXHIBIT 002 — MY FAVORITE PERSON",
+    text: `If this museum had its most valuable artwork, it would be you.
+
+Not because you're perfect, but because you're you.
+
+Thank you for being someone who makes ordinary days feel special. You have a place in my heart that nobody else could fill.`
+  },
+  {
+    name: "LITTLE THINGS I KEEP",
+    title: "EXHIBIT 003 — LITTLE THINGS I KEEP",
+    text: `Some of my favorite memories are the little things.
+
+The conversations, the laughs, the random moments, and the days I wish I could experience all over again.
+
+Every little moment with you is something worth keeping.
+
+Our photo collection will live here. ♡`
+  },
+  {
+    name: "OUR TIMELINE",
+    title: "EXHIBIT 004 — OUR TIMELINE",
+    text: `A RAINY DAY
+The little beginning of our story.
+
+AUGUST 6, 2026
+The day I reached out to you.
+
+OCTOBER 6, 2026
+The day I said yes.
+
+NOVEMBER 6, 2026
+Our first monthsary. One month of being us.`
+  },
+  {
+    name: "THE UNFINISHED COLLECTION",
+    title: "EXHIBIT 005 — STILL GROWING",
+    text: `This collection is still growing.
+
+There are more pictures to take, places to visit, little adventures to experience, and memories we haven't made yet.
+
+I hope we keep adding to this collection, one little moment at a time.`
+  },
+  {
+    name: "THE LAST EXHIBIT",
+    title: "EXHIBIT 006 — A LETTER FOR YOU",
+    text: `To my dearest Reyrey,
+
+Happy first monthsary, mahal ko.
+
+One month ago, you started courting me, and now here we are, making our own little memories together.
+
+Thank you for seeing my efforts, even the little ones, and for continuing to show up.
+
+I know our story won't always be perfect. There will be difficult days, misunderstandings, and things we'll have to figure out together. But I hope you know that I want to keep choosing you and growing with you.
+
+This museum may have a last exhibit, but I hope our story keeps going for a very long time.
+
+I love you. Happy first monthsary. ♡
+
+Always,
+Ia cute`
+  }
+];
+
+const player = {
+  x: 470,
+  y: 430,
+  speed: 3,
+  direction: "down"
+};
+
+let currentRoom = "lobby";
+let keys = {};
+let messageOpen = false;
+let secretFound = false;
+let animationFrame;
+
+const doors = [
+  {x: 185, y: 175, room: 0, symbol: "01"},
+  {x: 480, y: 175, room: 1, symbol: "02"},
+  {x: 775, y: 175, room: 2, symbol: "03"},
+  {x: 185, y: 385, room: 3, symbol: "04"},
+  {x: 480, y: 385, room: 4, symbol: "05"},
+  {x: 775, y: 385, room: 5, symbol: "06"}
+];
+
+const exhibit = { x: 480, y: 245, w: 110, h: 110 };
+const exitDoor = { x: 480, y: 485, w: 90, h: 65 };
+const star = { x: 740, y: 245 };
+
+function startGame() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("game").style.display = "block";
+
+  music.play().then(() => {
+    musicBtn.textContent = "♫ MUSIC: ON";
+  }).catch(() => {});
+
+  cancelAnimationFrame(animationFrame);
+  gameLoop();
+}
+
+function toggleMusic() {
+  if (music.paused) {
+    music.play().then(() => {
+      musicBtn.textContent = "♫ MUSIC: ON";
+    }).catch(() => {});
+  } else {
+    music.pause();
+    musicBtn.textContent = "♫ MUSIC: OFF";
+  }
+}
+
+function drawFloor() {
+  ctx.fillStyle = "#704253";
+  ctx.fillRect(0, 0, 960, 600);
+
+  for (let y = 35; y < 590; y += 40) {
+    for (let x = 35; x < 960; x += 48) {
+      ctx.fillStyle = ((x + y) / 40) % 2 < 1 ? "#805164" : "#795064";
+      ctx.fillRect(x, y, 44, 36);
+    }
+  }
+
+  ctx.fillStyle = "#f2c4c8";
+  ctx.fillRect(18, 18, 924, 564);
+
+  ctx.fillStyle = "#d9ac72";
+  ctx.fillRect(30, 30, 900, 540);
+
+  ctx.fillStyle = "#704253";
+  ctx.fillRect(42, 42, 876, 516);
+
+  for (let y = 52; y < 550; y += 42) {
+    for (let x = 52; x < 910; x += 44) {
+      ctx.fillStyle = ((x + y) / 42) % 2 < 1 ? "#805164" : "#795064";
+      ctx.fillRect(x, y, 40, 38);
+    }
+  }
+}
+
+function drawText(text, x, y, size = 12, color = "#fff0dc") {
+  ctx.fillStyle = color;
+  ctx.font = `${size}px "Press Start 2P"`;
+  ctx.textAlign = "center";
+  ctx.fillText(text, x, y);
+}
+
+function drawLobby() {
+  drawFloor();
+
+  ctx.fillStyle = "#f8e8d5";
+  ctx.fillRect(160, 50, 640, 65);
+  ctx.strokeStyle = "#d9ac72";
+  ctx.lineWidth = 5;
+  ctx.strokeRect(160, 50, 640, 65);
+
+  drawText("THE MUSEUM OF US", 480, 88, 20, "#641f3b");
+
+  doors.forEach((door, index) => {
+    ctx.fillStyle = "#d9ac72";
+    ctx.fillRect(door.x - 55, door.y - 38, 110, 105);
+
+    ctx.fillStyle = "#f8e8d5";
+    ctx.fillRect(door.x - 47, door.y - 30, 94, 88);
+
+    ctx.fillStyle = "#a94f69";
+    ctx.fillRect(door.x - 32, door.y - 15, 64, 65);
+
+    ctx.fillStyle = "#641f3b";
+    ctx.fillRect(door.x - 7, door.y + 22, 14, 28);
+
+    drawText(door.symbol, door.x, door.y - 3, 12, "#fff0dc");
+    drawText(rooms[index].name, door.x, door.y + 86, 7);
+  });
+
+  drawText("WALK TO A DOOR AND PRESS E", 480, 545, 10);
+}
+
+function drawRoom() {
+  drawFloor();
+
+  ctx.fillStyle = "#f8e8d5";
+  ctx.fillRect(140, 55, 680, 65);
+  ctx.strokeStyle = "#d9ac72";
+  ctx.lineWidth = 5;
+  ctx.strokeRect(140, 55, 680, 65);
+
+  drawText(rooms[currentRoom].name, 480, 94, 14, "#641f3b");
+
+  // Exhibit display
+  ctx.fillStyle = "#d9ac72";
+  ctx.fillRect(exhibit.x - 75, exhibit.y - 65, 150, 150);
+
+  ctx.fillStyle = "#fff0dc";
+  ctx.fillRect(exhibit.x - 65, exhibit.y - 55, 130, 130);
+
+  ctx.fillStyle = "#a94f69";
+  ctx.fillRect(exhibit.x - 48, exhibit.y - 38, 96, 96);
+
+  ctx.fillStyle = "#f2c4c8";
+  ctx.fillRect(exhibit.x - 35, exhibit.y - 25, 70, 70);
+
+  drawText("✦", exhibit.x, exhibit.y + 17, 25, "#641f3b");
+  drawText("EXHIBIT", exhibit.x, exhibit.y + 110, 10);
+
+  // Secret star in the fifth room
+  if (currentRoom === 4 && !secretFound) {
+    drawText("✦", star.x, star.y, 28, "#ffe29a");
+    drawText("SECRET", star.x, star.y + 35, 8);
+  }
+
+  // Exit
+  ctx.fillStyle = "#d9ac72";
+  ctx.fillRect(exitDoor.x - 48, exitDoor.y - 25, 96, 70);
+  ctx.fillStyle = "#a94f69";
+  ctx.fillRect(exitDoor.x - 38, exitDoor.y - 15, 76, 60);
+  drawText("EXIT", 480, 545, 10);
+}
+
+function drawCharacter(img, x, y, width = 46, height = 62) {
+  if (img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, x - width / 2, y - height, width, height);
+  } else {
+    ctx.fillStyle = "#f2b9c5";
+    ctx.fillRect(x - 15, y - 45, 30, 45);
+    ctx.fillStyle = "#641f3b";
+    ctx.fillRect(x - 10, y - 40, 20, 10);
+  }
+}
+
+function drawCharacters() {
+  if (currentRoom === "lobby") {
+    drawCharacter(reyrey, 420, 490, 52, 70);
+    drawCharacter(me, player.x, player.y, 46, 62);
+    drawText("REYREY", 420, 505, 7);
+  } else {
+    drawCharacter(me, player.x, player.y, 46, 62);
+  }
+}
+
+function drawHUD() {
+  ctx.fillStyle = "#f8e8d5";
+  ctx.fillRect(25, 525, 320, 42);
+  ctx.strokeStyle = "#d9ac72";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(25, 525, 320, 42);
+
+  ctx.fillStyle = "#641f3b";
+  ctx.font = '12px "Press Start 2P"';
+  ctx.textAlign = "left";
+  ctx.fillText(currentRoom === "lobby" ? "MAIN HALL" : "EXPLORING", 40, 551);
+}
+
+function distance(x1, y1, x2, y2) {
+  return Math.hypot(x1 - x2, y1 - y2);
+}
+
+function movePlayer() {
+  if (messageOpen) return;
+
+  let dx = 0;
+  let dy = 0;
+
+  if (keys.ArrowUp || keys.w || keys.up) dy--;
+  if (keys.ArrowDown || keys.s || keys.down) dy++;
+  if (keys.ArrowLeft || keys.a || keys.left) dx--;
+  if (keys.ArrowRight || keys.d || keys.right) dx++;
+
+  if (dx && dy) {
+    dx *= 0.707;
+    dy *= 0.707;
+  }
+
+  player.x += dx * player.speed;
+  player.y += dy * player.speed;
+
+  player.x = Math.max(75, Math.min(885, player.x));
+  player.y = Math.max(150, Math.min(510, player.y));
+
+  if (dx > 0) player.direction = "right";
+  if (dx < 0) player.direction = "left";
+  if (dy > 0) player.direction = "down";
+  if (dy < 0) player.direction = "up";
+}
+
+function getNearbyObject() {
+  if (currentRoom === "lobby") {
+    for (const door of doors) {
+      if (distance(player.x, player.y, door.x, door.y) < 85) {
+        return { type: "door", room: door.room };
+      }
+    }
+  } else {
+    if (distance(player.x, player.y, exhibit.x, exhibit.y) < 115) {
+      return { type: "exhibit" };
+    }
+
+    if (distance(player.x, player.y, exitDoor.x, exitDoor.y) < 100) {
+      return { type: "exit" };
+    }
+
+    if (currentRoom === 4 && !secretFound &&
+        distance(player.x, player.y, star.x, star.y) < 65) {
+      return { type: "star" };
+    }
+  }
+
+  return null;
+}
+
+function interact() {
+  if (messageOpen) return;
+
+  const nearby = getNearbyObject();
+
+  if (!nearby) {
+    document.getElementById("hint").textContent =
+      "Walk closer to a door or exhibit to interact.";
+    return;
+  }
+
+  if (nearby.type === "door") {
+    currentRoom = nearby.room;
+    player.x = 480;
+    player.y = 425;
+    document.getElementById("hint").textContent =
+      "Explore the room. Walk near the exhibit and press E.";
+  }
+
+  if (nearby.type === "exhibit") {
+    showMessage(rooms[currentRoom].title, rooms[currentRoom].text);
+  }
+
+  if (nearby.type === "exit") {
+    currentRoom = "lobby";
+    player.x = 480;
+    player.y = 440;
+    document.getElementById("hint").textContent =
+      "Welcome back! Choose another room to explore.";
+  }
+
+  if (nearby.type === "star") {
+    secretFound = true;
+    showMessage(
+      "A LITTLE SECRET ♡",
+      "If I could choose one person to make a thousand more memories with, it would still be you. ♡"
+    );
+  }
+}
+
+function showMessage(title, text) {
+  messageOpen = true;
+  document.getElementById("messageTitle").textContent = title;
+  document.getElementById("messageText").textContent = text;
+  document.getElementById("messageBox").classList.add("show");
+}
+
+function closeMessage() {
+  messageOpen = false;
+  document.getElementById("messageBox").classList.remove("show");
+}
+
+document.addEventListener("keydown", event => {
+  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) {
+    event.preventDefault();
+  }
+
+  if (key === "e" || event.key === " ") {
+    if (!event.repeat) interact();
+    return;
+  }
+
+  keys[key] = true;
+});
+
+document.addEventListener("keyup", event => {
+  const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+  keys[key] = false;
+});
+
+document.querySelectorAll("#controls button").forEach(button => {
+  const direction = button.dataset.dir;
+
+  button.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    keys[direction] = true;
+  });
+
+  ["pointerup", "pointerleave", "pointercancel"].forEach(type => {
+    button.addEventListener(type, () => {
+      keys[direction] = false;
+    });
+  });
+});
+
+function gameLoop() {
+  movePlayer();
+
+  if (currentRoom === "lobby") {
+    drawLobby();
+  } else {
+    drawRoom();
+  }
+
+  drawCharacters();
+  drawHUD();
+
+  const nearby = getNearbyObject();
+
+  if (nearby) {
+    document.getElementById("hint").textContent =
+      "Press E or SPACE to interact ♡";
+  }
+
+  animationFrame = requestAnimationFrame(gameLoop);
+}
+</script>
+
+</body>
+</html>a
