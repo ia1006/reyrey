@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Little World ♡</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800&display=swap');
+
+*{box-sizing:border-box}
+body{
+ margin:0;background:#241522;color:#fff0e9;
+ font-family:Nunito,sans-serif;min-height:100vh;
+ display:flex;align-items:center;justify-content:center;
+ padding:18px;
+}
+.game{width:min(100%,1000px);text-align:center}
+h1{font:16px 'Press Start 2P';color:#ffb7c9;line-height:1.8}
+.sub{color:#e8bdca;margin:8px 0 16px}
+canvas{
+ display:block;width:100%;height:auto;
+ border:7px solid #f4b6c8;border-radius:12px;
+ background:#604052;image-rendering:pixelated;
+ box-shadow:0 0 35px #ff9fbd44;
+}
+.panel{
+ margin-top:12px;background:#42283c;border:2px solid #a96b83;
+ border-radius:12px;padding:14px;
+}
+#room{font:11px 'Press Start 2P';color:#ffc4d4;margin-bottom:10px}
+#message{min-height:42px;line-height:1.6;color:#ffe5ec}
+.controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+button{
+ border:0;border-radius:8px;padding:11px 15px;
+ background:#e99ab4;color:#381e2d;font-weight:800;
+ cursor:pointer;font-family:Nunito,sans-serif;
+}
+button:active{transform:scale(.96)}
+.hint{font-size:12px;color:#d8b6c4;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="game">
+<h1>OUR LITTLE WORLD ♡</h1>
+<div class="sub">A tiny universe made for two.</div>
+<canvas id="game" width="960" height="560"></canvas>
+<div class="panel">
+ <div id="room">THE BEGINNING</div>
+ <div id="message">Welcome to our little world. Walk around and discover our memories. ♡</div>
+ <div class="controls">
+  <button onclick="move(0,-1)">↑</button>
+  <button onclick="move(-1,0)">←</button>
+  <button onclick="move(0,1)">↓</button>
+  <button onclick="move(1,0)">→</button>
+  <button onclick="interact()">INTERACT ♡</button>
+  <button onclick="toggleMusic()">♫ MUSIC</button>
+ </div>
+ <div class="hint">Use WASD or arrow keys to walk. Press E to interact. Walk through the glowing door to explore.</div>
+</div>
+</div>
+
+<audio id="music" loop>
+ <source src="museum-music.mp3.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+
+const rooms=[
+ {name:"THE BEGINNING",color:"#80566a",floor:"#bd8294",things:[
+  {x:250,y:245,label:"A little hello",msg:"Sometimes, the loveliest stories begin with something as small as a hello."},
+  {x:700,y:245,label:"Our first chapter",msg:"One little moment became a beginning I never knew I needed."}
+ ]},
+ {name:"THE ROOM OF STARS",color:"#443754",floor:"#796080",things:[
+  {x:260,y:230,label:"A star",msg:"You became my star: not because you made every day perfect, but because your presence made even ordinary days feel brighter."},
+  {x:690,y:300,label:"A wish",msg:"If I could make one wish, it would be to keep finding my way back to you."}
+ ]},
+ {name:"THE GARDEN",color:"#52684e",floor:"#91a477",things:[
+  {x:240,y:260,label:"A flower",msg:"You remind me that beautiful things can grow quietly, with patience and care."},
+  {x:700,y:260,label:"A strawberry",msg:"A little strawberry for the girl who loves strawberries. I hope this makes you smile."}
+ ]},
+ {name:"THE MEMORY ROOM",color:"#875c60",floor:"#c58d8c",things:[
+  {x:250,y:230,label:"A photograph",msg:"I wish I could put every little moment with you inside a frame, even the ones we almost forget."},
+  {x:700,y:230,label:"A keepsake",msg:"The smallest memories can become the ones we treasure the most."}
+ ]},
+ {name:"THE COZY ROOM",color:"#765044",floor:"#b9856d",things:[
+  {x:250,y:270,label:"A warm cup",msg:"I hope life is gentle with you. And when it isn't, I hope you remember how much you are loved."},
+  {x:700,y:270,label:"A little Snoopy",msg:"A tiny Snoopy visitor, because every little world needs something that makes you happy."}
+ ]},
+ {name:"THE PROMISE ROOM",color:"#663e58",floor:"#a76b85",things:[
+  {x:250,y:240,label:"A promise",msg:"I cannot promise that every day will be easy. But I can promise to keep choosing honesty, patience, and kindness."},
+  {x:700,y:240,label:"Two hearts",msg:"Two different people, two different stories, and somehow, one beautiful little world."}
+ ]},
+ {name:"THE LAST ROOM",color:"#54334c",floor:"#a36b85",things:[
+  {x:470,y:240,label:"Our little letter",msg:"To my dearest Reyrey: You are one of the loveliest parts of my story. Thank you for taking risks, for showing up, and for making room for me in your world. I hope you never forget that you are someone worth every gentle effort. If life is a sky full of stars, you will always be one of the lights I look for. Happy monthsary. I love you."}
+ ]}
+];
+
+let room=0;
+let player={x:460,y:420};
+let partner={x:520,y:420};
+let nearby=null;
+let musicOn=false;
+
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+function text(t,x,y,size=15,color="#fff0e8"){
+ ctx.fillStyle=color;ctx.font=`${size}px Nunito`;ctx.fillText(t,x,y);
+}
+function drawCharacter(x,y,masc=false){
+ // shadow
+ rect(x-15,y+23,34,7,"#38283a");
+ // hair
+ rect(x-13,y-32,27,12,masc?"#30202a":"#3b2528");
+ rect(x-16,y-24,32,20,masc?"#30202a":"#3b2528");
+ rect(x-12,y-14,24,19,"#f1c3a8");
+ // hair details
+ rect(x-15,y-25,7,22,masc?"#30202a":"#3b2528");
+ rect(x+9,y-24,7,25,masc?"#30202a":"#3b2528");
+ rect(x-7,y-8,4,3,"#49313a");
+ rect(x+5,y-8,4,3,"#49313a");
+ // body
+ rect(x-14,y+5,28,24,masc?"#a52d50":"#d75d83");
+ if(!masc){
+  rect(x-17,y+24,34,12,"#f2b5c7");
+  rect(x-17,y+34,34,5,"#f5d5dc");
+ }
+ // legs
+ rect(x-11,y+35,8,12,"#3d2c43");
+ rect(x+4,y+35,8,12,"#3d2c43");
+ rect(x-13,y+45,11,5,"#e9c2b5");
+ rect(x+3,y+45,11,5,"#e9c2b5");
+}
+function drawHeart(x,y){
+ ctx.fillStyle="#ffb2ca";
+ ctx.font="24px serif";ctx.fillText("♥",x,y);
+}
+function draw(){
+ const r=rooms[room];
+ rect(0,0,960,560,r.color);
+ // floor
+ rect(35,105,890,420,r.floor);
+ // floor tiles
+ ctx.strokeStyle="#ffffff18";ctx.lineWidth=2;
+ for(let x=35;x<925;x+=55){ctx.beginPath();ctx.moveTo(x,105);ctx.lineTo(x,525);ctx.stroke()}
+ for(let y=105;y<525;y+=55){ctx.beginPath();ctx.moveTo(35,y);ctx.lineTo(925,y);ctx.stroke()}
+ // walls
+ rect(0,0,960,105,"#38283d");
+ rect(0,0,960,12,"#e7a9bc");
+ rect(0,95,960,12,"#e7a9bc");
+ // windows
+ rect(75,25,120,55,"#f6c4d2");
+ rect(82,32,106,41,"#72516f");
+ rect(130,32,5,41,"#f6c4d2");
+ rect(82,51,106,5,"#f6c4d2");
+ // wall decorations
+ rect(340,24,100,58,"#f4c2ce");
+ rect(348,32,84,42,"#79506a");
+ drawHeart(378,62);
+ drawHeart(402,62);
+ rect(730,24,110,58,"#f4c2ce");
+ rect(738,32,94,42,"#79506a");
+ text("♡",773,62,25,"#ffc8d8");
+ // rug
+ rect(330,360,300,105,"#d98ca8");
+ rect(342,372,276,81,"#f2bdcb");
+ rect(365,390,230,45,"#d98ca8");
+ // objects
+ r.things.forEach((o,i)=>{
+  rect(o.x-35,o.y-24,70,52,"#563b4b");
+  rect(o.x-29,o.y-18,58,40,"#f3c4d1");
+  drawHeart(o.x-10,o.y+8);
+  text("✦",o.x-7,o.y-30,20,"#fff1b8");
+ });
+ // exit door
+ rect(825,175,75,120,"#3c253a");
+ rect(834,184,57,111,"#c17b98");
+ rect(843,194,39,101,"#653a55");
+ drawHeart(860,244);
+ text("NEXT ROOM",810,320,12,"#fff0e8");
+ // room sign
+ text(r.name,390,75,17,"#fff0e8");
+ // characters
+ drawCharacter(partner.x,partner.y,true);
+ drawCharacter(player.x,player.y,false);
+ drawHeart(player.x-8,player.y-47);
+ // bottom guide
+ rect(15,500,250,42,"#3c293b");
+ text("WALK • EXPLORE • LOVE",27,527,12,"#ffe0e9");
+}
+function showMessage(t){document.getElementById('message').textContent=t}
+function move(dx,dy){
+ player.x=Math.max(65,Math.min(900,player.x+dx*18));
+ player.y=Math.max(135,Math.min(475,player.y+dy*18));
+ if(player.x>815&&player.y>165&&player.y<310){
+  if(room<rooms.length-1){
+   room++;player.x=100;player.y=420;partner.x=150;partner.y=420;
+   document.getElementById('room').textContent=rooms[room].name;
+   showMessage("You found another little room. Look around and see what it holds. ♡");
+  }else{
+   showMessage("You reached the last room. Find the letter in the middle. ♡");
+   player.x=760;
+  }
+ }
+ draw();
+}
+function interact(){
+ let objects=rooms[room].things;
+ let closest=null,dist=Infinity;
+ objects.forEach(o=>{
+  let d=Math.hypot(player.x-o.x,player.y-o.y);
+  if(d<90&&d<dist){closest=o;dist=d}
+ });
+ if(closest)showMessage(closest.msg);
+ else showMessage("Walk closer to an object or the little keepsakes to discover their messages. ♡");
+}
+function toggleMusic(){
+ const m=document.getElementById('music');
+ if(!musicOn){
+  m.play().then(()=>{musicOn=true;showMessage("Music is playing. Enjoy exploring our little world. ♡")})
+  .catch(()=>showMessage("Add your music file named museum-music.mp3.mp3 to the repository first."));
+ }else{m.pause();musicOn=false;showMessage("Music paused. ♡")}
+}
+document.addEventListener('keydown',e=>{
+ const k=e.key.toLowerCase();
+ if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();
+ if(k==="arrowup"||k==="w")move(0,-1);
+ if(k==="arrowdown"||k==="s")move(0,1);
+ if(k==="arrowleft"||k==="a")move(-1,0);
+ if(k==="arrowright"||k==="d")move(1,0);
+ if(k==="e")interact();
+});
+document.getElementById('room').textContent=rooms[0].name;
+draw();
+</script>
+</body>
+</html>
