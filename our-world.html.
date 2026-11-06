@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Our Little Universe ♡</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;700;800&display=swap');
+*{box-sizing:border-box}
+body{margin:0;background:#211b2b;color:#fff1ed;font-family:Nunito,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:12px}
+#game{width:min(1100px,100%);background:#34283b;border:5px solid #e6a8b5;border-radius:18px;padding:12px;box-shadow:0 0 35px #0008}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:5px 5px 13px}
+h1{font-family:'Press Start 2P';font-size:clamp(11px,2vw,17px);color:#ffd4dc}
+#roomName{color:#ffe1a9;font-weight:800}
+button{border:2px solid #f4c0cb;background:#a94f70;color:white;border-radius:10px;padding:10px 14px;font-family:Nunito;font-weight:800;cursor:pointer}
+#screen{position:relative;width:100%;overflow:hidden;border:4px solid #f0c0c7;border-radius:10px}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated}
+#hint{text-align:center;min-height:28px;padding:10px;color:#ffe2d4;font-weight:700}
+#dialog{display:none;position:absolute;left:4%;right:4%;bottom:4%;background:#302438ee;border:3px solid #f4bdca;border-radius:12px;padding:16px;line-height:1.5;box-shadow:0 5px 20px #0008}
+#dialog strong{display:block;color:#ffd0dc;margin-bottom:6px}
+#dialog button{float:right;padding:5px 12px}
+#intro{position:absolute;inset:0;z-index:5;background:#241d2bef;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+#introBox{max-width:520px}
+#intro h2{font-family:'Press Start 2P';color:#ffd0dc;font-size:clamp(14px,3vw,24px);line-height:1.8}
+#intro p{line-height:1.7;color:#f9dfe5}
+#controls{text-align:center;color:#f8dce4;font-size:13px;padding:8px}
+#mobile{display:none;justify-content:center;gap:7px;margin-top:10px}
+#mobile button{width:46px;height:44px;padding:0;font-size:18px;touch-action:none}
+@media(max-width:650px){#mobile{display:flex}#game{padding:7px}}
+</style>
+</head>
+<body>
+<div id="game">
+<header>
+<h1>OUR LITTLE UNIVERSE ♡</h1>
+<div>📍 <span id="roomName">The Welcome Hall</span></div>
+<button id="musicButton">♫ Music: ON</button>
+</header>
+<div id="screen">
+<canvas id="world" width="960" height="600"></canvas>
+<div id="intro">
+<div id="introBox">
+<h2>WELCOME TO<br>OUR LITTLE UNIVERSE</h2>
+<p>A little world made of all the moments, memories, and places that remind me of us.</p>
+<p>Explore every room. Open every door. There are little surprises waiting for you.</p>
+<button id="start">ENTER OUR WORLD ♡</button>
+</div>
+</div>
+<div id="dialog"><button id="close">CLOSE</button><strong id="dialogTitle"></strong><span id="dialogText"></span></div>
+</div>
+<div id="hint">Use WASD or arrow keys to walk. Press E near a door or object.</div>
+<div id="controls">WASD / ARROWS — MOVE • E — INTERACT • ESC — CLOSE MESSAGE</div>
+<div id="mobile">
+<button data-key="up">▲</button><button data-key="left">◀</button>
+<button data-key="down">▼</button><button data-key="right">▶</button>
+<button id="mobileE">E</button>
+</div>
+</div>
+
+<audio id="music" loop>
+<source src="museum-music.mp3.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const canvas=document.getElementById("world");
+const ctx=canvas.getContext("2d");
+const $=id=>document.getElementById(id);
+const music=$("music");
+
+const youImg=new Image();
+youImg.src="Screenshot 2026-09-05 185453.png";
+const reyImg=new Image();
+reyImg.src="Screenshot 2026-09-05 185026.png";
+
+const player={x:460,y:440,speed:3.2};
+const partner={x:510,y:440};
+let room="hall",keys={},started=false;
+
+const rooms={
+hall:{name:"The Welcome Hall",floor:"#b77d79",wall:"#704d61",
+doors:[["gallery",480,65,"top"],["garden",65,300,"left"],["music",895,300,"right"],["arcade",480,535,"bottom"]],
+objects:[
+[250,205,"🌷","The flower stand","A little reminder that even the simplest things can become special when they come from someone you love."],
+[700,205,"🕰️","Our little clock","Time keeps moving, but some moments are worth returning to again and again."],
+[475,300,"💌","A welcome note","Welcome, Reyrey. This little world was made with you in mind. Take your time and explore."]
+]},
+gallery:{name:"The Memory Gallery",floor:"#987c91",wall:"#59485f",
+doors:[["stars",480,65,"top"],["hall",65,300,"left"],["bedroom",895,300,"right"]],
+objects:[
+[250,210,"🖼️","First little moment","A beginning doesn't always look like a beginning. Sometimes, it's just a simple hello."],
+[480,210,"📷","Our memories","This frame is waiting for one of your favorite pictures of us."],
+[710,210,"💗","The red string","Two different paths, two different people, and somehow our little stories crossed."],
+[480,390,"🎀","A tiny keepsake","Some of the best things are the little details we remember."]
+]},
+garden:{name:"The Strawberry Garden",floor:"#78936e",wall:"#435e4d",
+doors:[["hall",895,300,"right"],["bedroom",480,65,"top"]],
+objects:[
+[250,210,"🍓","Strawberry patch","A little strawberry patch, because some things are simply too cute not to include."],
+[480,350,"🌼","The flower field","I hope life gives you as many reasons to bloom as there are flowers in this garden."],
+[700,210,"🧺","Picnic basket","Imagine a quiet afternoon, good food, and nowhere else we need to be."]
+]},
+music:{name:"The Music Room",floor:"#786b8d",wall:"#4a3e65",
+doors:[["hall",65,300,"left"],["arcade",480,535,"bottom"]],
+objects:[
+[260,220,"🎸","The guitar","It started with a guitar and a little moment I didn't know I would remember this much."],
+[480,350,"🎵","Our song","Some songs feel like they understand things we don't always know how to say."],
+[700,220,"🎧","Listen closely","Let the music play while you explore."]
+]},
+arcade:{name:"The Arcade Room",floor:"#9b7188",wall:"#60445e",
+doors:[["hall",480,65,"top"],["music",65,300,"left"],["stars",895,300,"right"]],
+objects:[
+[250,220,"🕹️","Little game machine","Achievement unlocked: finding your way into my little world."],
+[480,350,"⭐","A star token","You found a star! It represents all the little things about you that make you shine."],
+[710,220,"🎁","Mystery gift","Your reward for exploring is a reminder that you are appreciated more than you know."]
+]},
+bedroom:{name:"The Cozy Room",floor:"#a77f89",wall:"#684d65",
+doors:[["gallery",65,300,"left"],["garden",480,535,"bottom"]],
+objects:[
+[250,220,"🐶","Snoopy corner","A tiny Snoopy corner, because the things that make you happy deserve a place here."],
+[480,350,"🛏️","A quiet place","I hope you always have a place where you can rest, feel safe, and be completely yourself."],
+[710,220,"🧸","The teddy bear","A soft reminder to be gentle with yourself."]
+]},
+stars:{name:"The Stargazing Room",floor:"#4e527c",wall:"#292d50",
+doors:[["gallery",480,535,"bottom"],["arcade",65,300,"left"],["secret",895,300,"right"]],
+objects:[
+[250,210,"🌙","The moon","Even on the quietest nights, I hope you remember that you matter and that your efforts are seen."],
+[480,350,"✨","Our constellation","If every little moment were a star, I think we'd have enough to fill an entire sky."],
+[710,210,"⭐","A wish","I hope you get to become everything you've been dreaming of."]
+]},
+secret:{name:"The Secret Room",floor:"#805c78",wall:"#4d354f",
+doors:[["stars",65,300,"left"]],
+objects:[
+[480,220,"💌","For Reyrey","Perhaps it was always you. Out of all the people, places, and possible beginnings, I'm glad our paths crossed. Happy first monthsary, my Reyrey. If I had to find you all over again, I'd gladly take the same little risk."],
+[480,390,"❤️","One more thing","Thank you for being part of my little universe. I hope this world reminds you how special you are to me."]
+]}
+};
+
+function dist(a,b,x,y){return Math.hypot(a-x,b-y)}
+function box(x,y,w,h,color){
+ctx.fillStyle=color;ctx.fillRect(x,y,w,h);
+}
+function rounded(x,y,w,h,r,color){
+ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();
+}
+
+function drawDoor(d){
+let [to,x,y,side]=d;
+box(x-31,y-39,62,78,"#302438");
+box(x-25,y-33,50,70,"#c77d8e");
+box(x-18,y-25,36,58,"#f8d2bb");
+box(x-13,y-20,26,53,"#80546a");
+box(x+8,y+5,5,5,"#ffe3a5");
+if(dist(player.x,player.y,x,y)<78){
+ctx.fillStyle="white";ctx.font="bold 13px Nunito";
+ctx.textAlign="center";ctx.fillText("E: ENTER",x,y-48);
+}
+}
+
+function drawCharacter(img,x,y,color,name){
+ctx.fillStyle="#0005";ctx.beginPath();ctx.ellipse(x,y+20,22,8,0,0,Math.PI*2);ctx.fill();
+if(img.complete&&img.naturalWidth){
+ctx.drawImage(img,x-25,y-55,50,75);
+}else{
+box(x-12,y-40,24,24,color);box(x-10,y-57,20,20,"#f4c7b5");box(x-11,y-60,22,8,"#493247");
+}
+ctx.font="bold 12px Nunito";ctx.textAlign="center";ctx.fillStyle="white";ctx.fillText(name,x,y+34);
+}
+
+function draw(){
+const r=rooms[room];
+box(0,0,960,600,r.floor);
+for(let y=0;y<600;y+=48)for(let x=0;x<960;x+=48){
+box(x,y,48,48,((x/48+y/48)%2===0)?"#ffffff0b":"#00000009");
+}
+box(0,0,960,42,r.wall);box(0,0,35,600,r.wall);box(925,0,35,600,r.wall);box(0,558,960,42,r.wall);
+for(let x=100;x<900;x+=190)box(x,12,48,5,"#f5d3c5");
+rounded(350,53,260,38,10,"#302438cc");
+ctx.fillStyle="#fff0df";ctx.font="bold 17px Nunito";ctx.textAlign="center";ctx.fillText(r.name,480,78);
+
+r.doors.forEach(drawDoor);
+r.objects.forEach(o=>{
+ctx.fillStyle="#0003";ctx.beginPath();ctx.ellipse(o[0],o[1]+35,38,10,0,0,Math.PI*2);ctx.fill();
+rounded(o[0]-34,o[1]-32,68,68,12,"#fff0df");
+rounded(o[0]-29,o[1]-27,58,58,9,"#6a4b68");
+ctx.font="30px serif";ctx.fillText(o[2],o[0],o[1]+10);
+if(dist(player.x,player.y,o[0],o[1])<75){
+ctx.fillStyle="white";ctx.font="bold 14px Nunito";ctx.fillText("E: LOOK",o[0],o[1]-43);
+}
+});
+["90,500","870,500","100,115","860,115"].forEach(s=>{
+let [x,y]=s.split(",").map(Number);ctx.font="28px serif";ctx.fillText("🌿",x,y);
+});
+partner.x+=(player.x-42-partner.x)*.045;
+partner.y+=(player.y+8-partner.y)*.045;
+drawCharacter(reyImg,partner.x,partner.y,"#a83d59","Reyrey");
+drawCharacter(youImg,player.x,player.y,"#e6a6b9","You");
+requestAnimationFrame(draw);
+}
+
+function message(title,text){
+$("dialogTitle").textContent=title;
+$("dialogText").textContent=text;
+$("dialog").style.display="block";
+}
+function close(){ $("dialog").style.display="none"; }
+
+function interact(){
+if($("dialog").style.display==="block"){close();return;}
+const r=rooms[room];
+const d=r.doors.find(d=>dist(player.x,player.y,d[1],d[2])<78);
+if(d){
+room=d[0];
+player.x=d[3]==="left"?820:d[3]==="right"?140:480;
+player.y=d[3]==="top"?470:d[3]==="bottom"?120:300;
+$("roomName").textContent=rooms[room].name;
+$("hint").textContent="You entered "+rooms[room].name+". Explore!";
+return;
+}
+const o=r.objects.find(o=>dist(player.x,player.y,o[0],o[1])<75);
+if(o)message(o[3],o[4]);
+else $("hint").textContent="Walk closer to a door or object first.";
+}
+
+function update(){
+if(started&&$("dialog").style.display!=="block"){
+let dx=0,dy=0;
+if(keys.up||keys.w)dy--;
+if(keys.down||keys.s)dy++;
+if(keys.left||keys.a)dx--;
+if(keys.right||keys.d)dx++;
+if(dx||dy){
+let len=Math.hypot(dx,dy);
+player.x=Math.max(65,Math.min(895,player.x+dx/len*player.speed));
+player.y=Math.max(115,Math.min(515,player.y+dy/len*player.speed));
+}
+}
+requestAnimationFrame(update);
+}
+
+document.addEventListener("keydown",e=>{
+let k=e.key.toLowerCase();
+if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(k))e.preventDefault();
+if(k==="escape")close();
+if(k==="e"||k===" "){if(started&&!e.repeat)interact();return;}
+if(k==="arrowup")keys.up=true;
+else if(k==="arrowdown")keys.down=true;
+else if(k==="arrowleft")keys.left=true;
+else if(k==="arrowright")keys.right=true;
+else keys[k]=true;
+});
+document.addEventListener("keyup",e=>{
+let k=e.key.toLowerCase();
+if(k==="arrowup")keys.up=false;
+else if(k==="arrowdown")keys.down=false;
+else if(k==="arrowleft")keys.left=false;
+else if(k==="arrowright")keys.right=false;
+else keys[k]=false;
+});
+
+document.querySelectorAll("[data-key]").forEach(b=>{
+let k=b.dataset.key;
+b.addEventListener("pointerdown",e=>{e.preventDefault();keys[k]=true;});
+["pointerup","pointerleave","pointercancel"].forEach(ev=>b.addEventListener(ev,()=>keys[k]=false));
+});
+$("mobileE").onclick=interact;
+$("close").onclick=close;
+
+$("start").onclick=async()=>{
+started=true;$("intro").style.display="none";
+try{await music.play();}catch(e){$("hint").textContent="Tap Music: ON to start the music.";}
+};
+
+$("musicButton").onclick=async()=>{
+if(music.paused){
+try{await music.play();$("musicButton").textContent="♫ Music: ON";}
+catch(e){$("hint").textContent="Check the music filename in your repository.";}
+}else{
+music.pause();$("musicButton").textContent="♫ Music: OFF";
+}
+};
+
+draw();
+update();
+</script>
+</body>
+</html>
