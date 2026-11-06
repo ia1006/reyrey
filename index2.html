@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Little World ♡</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@600;800&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #211b2b;
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  text-align: center;
+}
+
+h1 {
+  font-family: 'Press Start 2P';
+  font-size: 18px;
+  color: #ffcad8;
+  margin: 22px 5px;
+}
+
+#game {
+  position: relative;
+  width: min(960px, 96vw);
+  margin: auto;
+}
+
+canvas {
+  width: 100%;
+  display: block;
+  border: 5px solid #f5b7c9;
+  border-radius: 10px;
+  background: #49364d;
+  image-rendering: pixelated;
+}
+
+#message {
+  min-height: 55px;
+  padding: 14px;
+  color: #ffe0e9;
+  font-size: 16px;
+}
+
+button {
+  border: 2px solid #ffc5d7;
+  background: #a94d70;
+  color: white;
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin: 5px;
+  font-family: 'Nunito';
+  font-weight: 800;
+  cursor: pointer;
+}
+
+#start {
+  position: absolute;
+  inset: 0;
+  background: #241c30;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+#start p {
+  max-width: 80%;
+  line-height: 1.8;
+  color: #ffdce7;
+}
+
+.controls {
+  margin: 12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>OUR LITTLE WORLD ♡</h1>
+
+<div id="game">
+
+<canvas id="screen" width="960" height="600"></canvas>
+
+<div id="start">
+  <h1>WELCOME HOME</h1>
+  <p>A little world made from all the little moments that belong to us.</p>
+  <button onclick="begin()">ENTER OUR WORLD ♡</button>
+</div>
+
+</div>
+
+<div id="message">Explore our little world. Use the arrow keys to walk.</div>
+
+<div class="controls">
+  <button onclick="move(0,-1)">↑</button><br>
+  <button onclick="move(-1,0)">←</button>
+  <button onclick="interact()">E · INTERACT</button>
+  <button onclick="move(1,0)">→</button><br>
+  <button onclick="move(0,1)">↓</button>
+  <button onclick="toggleMusic()">♫ MUSIC ON/OFF</button>
+</div>
+
+<audio id="music" loop>
+  <source src="museum-music.mp3.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
+
+const userImg = new Image();
+userImg.src = "Screenshot 2026-09-05 185453.png";
+
+const reyImg = new Image();
+reyImg.src = "Screenshot 2026-09-05 185026.png";
+
+const music = document.getElementById("music");
+
+let started = false;
+let room = 0;
+
+const player = { x: 450, y: 420, speed: 5 };
+const partner = { x: 510, y: 420 };
+
+const rooms = [
+ {
+  name:"WELCOME HALL",
+  color:"#75516c",
+  objects:[
+   {x:170,y:180,t:"♡",m:"Every beautiful story has a beginning. Ours started with one little hello."},
+   {x:700,y:180,t:"✿",m:"And somehow, that little hello became my favorite part of every day."}
+  ]
+ },
+ {
+  name:"MEMORY GALLERY",
+  color:"#76546b",
+  objects:[
+   {x:250,y:190,t:"▣",m:"A frame for the memories I never want to forget."},
+   {x:480,y:190,t:"▣",m:"Some moments are ordinary to everyone else, but precious to me."},
+   {x:700,y:190,t:"▣",m:"If I could keep one thing forever, it would be the moments with you."}
+  ]
+ },
+ {
+  name:"STRAWBERRY GARDEN",
+  color:"#a85870",
+  objects:[
+   {x:200,y:210,t:"🍓",m:"A little strawberry garden, because it reminds me of the little things I love."},
+   {x:480,y:190,t:"🌷",m:"May our days always have room for softness and flowers."},
+   {x:750,y:220,t:"♡",m:"You make even the simplest days feel special."}
+  ]
+ },
+ {
+  name:"MUSIC ROOM",
+  color:"#564b78",
+  objects:[
+   {x:300,y:190,t:"♫",m:"Some songs remind me of you. Some songs feel like our story."},
+   {x:650,y:190,t:"♪",m:"If this little world had a soundtrack, you would be in every note."}
+  ]
+ },
+ {
+  name:"ARCADE ROOM",
+  color:"#475d79",
+  objects:[
+   {x:250,y:200,t:"★",m:"Achievement unlocked: finding someone worth choosing every day."},
+   {x:700,y:200,t:"♥",m:"My favorite player two will always be you."}
+  ]
+ },
+ {
+  name:"COZY ROOM",
+  color:"#92677a",
+  objects:[
+   {x:260,y:210,t:"☁",m:"A little place to rest. I hope you always feel safe being yourself with me."},
+   {x:700,y:210,t:"♡",m:"Thank you for being patient with me, even on my difficult days."}
+  ]
+ },
+ {
+  name:"STAR ROOM",
+  color:"#343c68",
+  objects:[
+   {x:250,y:180,t:"★",m:"You are my star, even on the days when everything feels dark."},
+   {x:700,y:180,t:"✦",m:"You are someone who makes the world feel a little brighter."}
+  ]
+ },
+ {
+  name:"SECRET ROOM",
+  color:"#75485f",
+  objects:[
+   {x:480,y:190,t:"💌",m:"If I had to find my way through this world all over again, I would still hope our paths crossed. Happy first monthsary, Reyrey. Thank you for being part of my little universe. I love you."}
+  ]
+ }
+];
+
+function drawRoom() {
+ const r = rooms[room];
+
+ ctx.fillStyle = r.color;
+ ctx.fillRect(0,0,960,600);
+
+ // Floor
+ ctx.fillStyle = "#d49bab";
+ ctx.fillRect(0,410,960,190);
+
+ // Floor tiles
+ ctx.strokeStyle = "rgba(80,35,65,.2)";
+ for(let x=0;x<960;x+=60){
+  ctx.beginPath();
+  ctx.moveTo(x,410);
+  ctx.lineTo(x,600);
+  ctx.stroke();
+ }
+ for(let y=440;y<600;y+=40){
+  ctx.beginPath();
+  ctx.moveTo(0,y);
+  ctx.lineTo(960,y);
+  ctx.stroke();
+ }
+
+ // Room title
+ ctx.fillStyle = "#fff0f5";
+ ctx.font = "18px 'Press Start 2P'";
+ ctx.textAlign = "center";
+ ctx.fillText(r.name,480,55);
+
+ // Doors
+ for(let i=0;i<rooms.length;i++){
+  let x = 100 + i*108;
+  ctx.fillStyle = "#57364f";
+  ctx.fillRect(x,100,65,100);
+  ctx.fillStyle = "#f6c3d3";
+  ctx.fillRect(x+7,107,51,93);
+  ctx.fillStyle = "#71455e";
+  ctx.fillRect(x+13,113,39,87);
+  ctx.fillStyle = "#fff";
+  ctx.font = "12px Nunito";
+  ctx.fillText(i+1,x+32,220);
+ }
+
+ // Objects
+ r.objects.forEach(o=>{
+  ctx.fillStyle = "#fff2f5";
+  ctx.font = "42px serif";
+  ctx.fillText(o.t,o.x,o.y);
+ });
+
+ // Characters
+ drawCharacter(userImg,player.x,player.y,"YOU");
+ drawCharacter(reyImg,partner.x,partner.y,"REYREY");
+
+ ctx.fillStyle = "#fff";
+ ctx.font = "13px Nunito";
+ ctx.fillText("Walk near objects and press E to interact",480,570);
+}
+
+function drawCharacter(img,x,y,label){
+ if(img.complete && img.naturalWidth>0){
+  ctx.drawImage(img,x-28,y-75,56,75);
+ } else {
+  ctx.fillStyle = label==="YOU" ? "#ffd4e1" : "#a82950";
+  ctx.fillRect(x-18,y-45,36,45);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x-12,y-39,7,7);
+  ctx.fillRect(x+5,y-39,7,7);
+ }
+ ctx.fillStyle = "#fff";
+ ctx.font = "bold 13px Nunito";
+ ctx.fillText(label,x,y-82);
+}
+
+function render(){
+ drawRoom();
+ requestAnimationFrame(render);
+}
+render();
+
+function begin(){
+ started=true;
+ document.getElementById("start").style.display="none";
+ music.play().catch(()=>{});
+ say("Welcome to our little world. Let's explore together. ♡");
+}
+
+function say(text){
+ document.getElementById("message").textContent=text;
+}
+
+function move(dx,dy){
+ if(!started)return;
+
+ player.x=Math.max(35,Math.min(925,player.x+dx*player.speed*5));
+ player.y=Math.max(260,Math.min(520,player.y+dy*player.speed*5));
+
+ partner.x += (player.x-partner.x)*0.12;
+ partner.y += (player.y-partner.y)*0.12;
+
+}
+
+function interact(){
+ if(!started)return;
+
+ const r=rooms[room];
+ let nearest=null;
+ let distance=Infinity;
+
+ r.objects.forEach(o=>{
+  const d=Math.hypot(player.x-o.x,player.y-o.y);
+  if(d<distance){distance=d;nearest=o;}
+ });
+
+ if(nearest && distance<150){
+  say(nearest.m);
+  return;
+ }
+
+ // Doors
+ if(player.y<260){
+  let door=Math.round((player.x-132)/108);
+  if(door>=0 && door<8){
+   room=door;
+   player.x=480;
+   player.y=430;
+   say("You entered "+rooms[room].name+" ♡");
+   return;
+  }
+ }
+
+ say("Walk closer to a memory or a door first. ♡");
+}
+
+function toggleMusic(){
+ if(music.paused){
+  music.play().catch(()=>say("Tap ENTER OUR WORLD first to start the music."));
+ } else {
+  music.pause();
+ }
+}
+
+document.addEventListener("keydown",e=>{
+ if(!started)return;
+
+ if(["ArrowUp","w","W"].includes(e.key))move(0,-1);
+ if(["ArrowDown","s","S"].includes(e.key))move(0,1);
+ if(["ArrowLeft","a","A"].includes(e.key))move(-1,0);
+ if(["ArrowRight","d","D"].includes(e.key))move(1,0);
+ if(e.key==="e"||e.key==="E"||e.key==="Enter")interact();
+});
+</script>
+
+</body>
+</html>
